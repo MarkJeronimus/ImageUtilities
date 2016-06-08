@@ -1,5 +1,5 @@
 /*
- * This file is part of
+ * This file is part of ImageUtilities.
  *
  * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
  *
@@ -14,7 +14,7 @@
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with NativeAccessHooks. If not, see <http://www.gnu.org/licenses/>.
+ * along with ImageUtilities. If not, see <http://www.gnu.org/licenses/>.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,

@@ -1,10 +1,5 @@
-package org.digitalmodular.imageutilities;
-
-import java.awt.Color;
-import java.awt.Dimension;
-import java.awt.image.BufferedImage;
 /*
- * This file is part of AllUtilities.
+ * This file is part of ImageUtilities.
  *
  * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
  *
@@ -19,7 +14,7 @@ import java.awt.image.BufferedImage;
  * GNU General Public License for more details.
  *
  * You should have received a copy of the GNU General Public License
- * along with NativeAccessHooks. If not, see <http://www.gnu.org/licenses/>.
+ * along with ImageUtilities. If not, see <http://www.gnu.org/licenses/>.
  *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
@@ -29,6 +24,11 @@ import java.awt.image.BufferedImage;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package org.digitalmodular.imageutilities;
+
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.util.Objects;
 
 import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
