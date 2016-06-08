@@ -17,17 +17,17 @@ While it has tons of features, simply resizing an image is easy with the default
   * Output offset, to move the image with subpixel accuracy (default: depends on final dimension, but is either <tt>(0, 0)</tt> or <tt>(0.5, 0.5)</tt>
   * Flag to skip sRGB correction (default: <tt>false</tt>)
   * Flag to skip alpha pre-multiplying and un-pre-multiplying (default: <tt>false</tt>, ignored for opaque images)
-  * Mode to handle out-of-edge pixels (default: <tt>CLAMP</tt>, all others are on TODO list)
+  * Mode to handle beyond-edge pixels (default: <tt>CLAMP</tt>, all others are on TODO list)
   * Number of threads (default: <tt>availableProcessors</tt>)
-  * Resampling-curve (default: <tt>Lanczos3ResamplingCurve</tt>, others: <tt>BoxResamplingCurve</tt> and <tt>CubicResamplingCurve</tt> and many more, and an easy API to write your own)
+  * Resampling-curve (default: <tt>Lanczos3ResamplingCurve</tt>, others: <tt>BoxResamplingCurve</tt>, <tt>CubicResamplingCurve</tt> and many more, and an easy API to write your own)
 * Other features
-  * Internal 15 bit per channel format to prevent intermediate clamping
+  * Internal 15 bit per channel format to prevent intermediate clamping and quantization
   * Custom containers for Point, Size, etc. which are immutable
   * Progress listeners (custom API for more flexibility)
-  * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty) and a utility to convert such images to a compatible format.
-  * Auto-select resampling-curve (experimental). This can select a less 'accurate' filters than Lanczos3 depending on the enlargement factor
+  * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty) and a utility to convert such images to a compatible format so you can resize them many times, e.g. when resizing a window.
   * GIF loader fixes 'bugged' GIFs to prevent [hyper-speed animations](http://stackoverflow.com/questions/26801433/fix-frame-rate-of-animated-gif-in-java)
   * Performance timer (spams some debug stuff to the console while resizing)
+  * Auto-select resampling-curve (experimental). This can select a less 'accurate' filter than Lanczos3 depending on the enlargement factor
   * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt> and condition (default: <tt>ALWAYS</tt>)
   * Utilities to create an <tt>AnimationFrame[]</tt> (read: animation) from GIF files, and a (JavaFX-based) SWING widget to show the animation
 
