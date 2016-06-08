@@ -15,20 +15,20 @@ public interface ImageResizer {
 		 * Replicate edge pixels (-1 = 0, -2 = 0, etc.)
 		 */
 		CLAMP,
-		/**
-		 * Replicate edge pixels (-1 = w, -2 = w-1, etc.)
-		 */
-		WRAP,
-		/**
-		 * Mirror back at the edge (-1 = 1, -2 = 2, etc.)
-		 */
-		BOUNCE,
-		/**
-		 * Simulate transparent pixels beyond the edge (only applicable if the image to resize is transparent,
-		 * otherwise an {@link IllegalArgumentException} will be thrown by
-		 * {@link AbstractImageResizer#resize(Object) resize()}).
-		 */
-		TRANSPARENT
+//		/**
+//		 * Replicate edge pixels (-1 = w, -2 = w-1, etc.)
+//		 */
+//		WRAP,
+//		/**
+//		 * Mirror back at the edge (-1 = 1, -2 = 2, etc.)
+//		 */
+//		BOUNCE,
+//		/**
+//		 * Simulate transparent pixels beyond the edge (only applicable if the image to resize is transparent,
+//		 * otherwise an {@link IllegalArgumentException} will be thrown by
+//		 * {@link AbstractImageResizer#resize(Object) resize()}).
+//		 */
+//		TRANSPARENT
 	}
 
 	SizeInt getOutputSize();
