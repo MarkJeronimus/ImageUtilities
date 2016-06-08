@@ -1,4 +1,4 @@
-8-6-2016 20:02# ImageUtilities
+# ImageUtilities
 Library with:
 
 * A high-quality, high-performance image resizer/resampler
