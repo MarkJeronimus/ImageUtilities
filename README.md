@@ -28,7 +28,7 @@ While it has tons of features, simply resizing an image is easy with the default
   * GIF loader fixes 'bugged' GIFs to prevent [hyper-speed animations](http://stackoverflow.com/questions/26801433/fix-frame-rate-of-animated-gif-in-java)
   * Performance timer (spams some debug stuff to the console while resizing)
   * Auto-select resampling-curve (experimental). This can select a less 'accurate' filter than Lanczos3 depending on the enlargement factor
-  * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt> and condition (default: <tt>ALWAYS</tt>)
+  * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt>) and condition (default: <tt>ALWAYS</tt>)
   * Utilities to create an <tt>AnimationFrame[]</tt> (read: animation) from GIF files, and a (JavaFX-based) SWING widget to show the animation
 
 Currently, two concrete implementations of the resampler are available, the slightly slower but more mature <tt>ImageResamplerShort2</tt> which uses a 4-pass strategy:
@@ -38,11 +38,11 @@ Currently, two concrete implementations of the resampler are available, the slig
 3. Resample the other axis
 4. Post-convert
 
-Each step is performed by slicing the image up in N strips and calculating those concurrently. Each next step only starts when the entire previous step is completed. On average (tested on an idle i7-4710MQ) about 5-10% of CPU cycles is wasted because the fastest thread outperforms the slowest thread by that amount.
+Each pass is completed before starting the next pass. In each pass, the image is split into horizontal strips which are processed concurrently. On average (tested on an idle i7-4710MQ) about 5-10% of wall clock time is wasted because some threads are faster than others and it doesn't use "work stealing".
 
 ---
 
-The slightly faster and experimental implementation, <tt>ImageResamplerShort</tt> uses a smart interleaving strategy. The image is chopped into many rectangular pieces, and workers for each of the four steps are instantiated for each piece, with a dependency on the results of the previous worker and neighboring workers. A worker becomes eligible for execution if all dependent workers are completed. All workers are then executed concurrently. Workers which are blocked start whenever they become eligible <i>and</i> a thread is available.
+The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> uses a smart interleaving strategy. The image is chopped into many rectangular pieces, and workers for each of the aforementioned steps are instantiated for each piece, with a dependency on the results of the previous worker and some neighboring workers. A worker becomes eligible for execution if all dependent workers are completed. All workers are submitted for concurrent execution. Workers which are blocked start whenever they become eligible <i>and</i> a thread is available.
 
 # Changes
 (compared to [java-image-scaling](https://github.com/mortennobel/java-image-scaling))
@@ -54,8 +54,8 @@ The slightly faster and experimental implementation, <tt>ImageResamplerShort</tt
 - Subsampling center offset now configurable (user and auto<sup>[[2]]( "Sets offset to 0.5 if it would make the image sharper (more precisely, when the output size is an odd number of pixels)")</sup>)
 - Subsampling border effect was wrong<sup>[[1]]( "Ignoring out-of-bounds pixels increases the weight of existing pixels. This causes the pixels near the edge to 'move' inwards slightly. This is akin to non-linear image warping")</sup> (was: ignore, now: replicate_edge)
 - Subsampling left and right always unnecessarily went out of radius (ceil/floor swapped)
-- Subsampling numContributors slightly wrong. fNormFac was facked. Both are not necessary anymore, because of:
-- Subsampling 'number of samples' now fixed for each direction. In rare cases one of the weights can be 0.
+- Subsampling numContributors slightly wrong. fNormFac calculation was totally facked. Both are not necessary anymore, because of the next point:
+- Subsampling 'number of samples' now fixed for a given scaling factor. Only in rare cases can one of the weights be 0.
 - Removed ResampleFilters.java and made individual filters public, so filters can be added/extended easily
 - Removed all 'blurry' and 'sharp' filters
 - Renamed filters to their popular name (though, without Bi-): Triangle->Linear, Bicubic->Cubic
