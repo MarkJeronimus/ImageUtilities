@@ -21,17 +21,17 @@ While it has tons of features, simply resizing an image is easy with the default
   * Number of threads (default: <tt>availableProcessors</tt>)
   * Resampling-curve (default: <tt>Lanczos3ResamplingCurve</tt>, others: <tt>BoxResamplingCurve</tt> and <tt>CubicResamplingCurve</tt> and many more, and an easy API to write your own)
 * Other features
+  * Internal 15 bit per channel format to prevent intermediate clamping
   * Custom containers for Point, Size, etc. which are immutable
   * Progress listeners (custom API for more flexibility)
-  * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty)
+  * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty) and a utility to convert such images to a compatible format.
   * Auto-select resampling-curve (experimental). This can select a less 'accurate' filters than Lanczos3 depending on the enlargement factor
+  * GIF loader fixes 'bugged' GIFs to prevent [hyper-speed animations](http://stackoverflow.com/questions/26801433/fix-frame-rate-of-animated-gif-in-java)
   * Performance timer (spams some debug stuff to the console while resizing)
-  * Internal 15 bit per channel format to prevent intermediate clamping
   * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt> and condition (default: <tt>ALWAYS</tt>)
   * Utilities to create an <tt>AnimationFrame[]</tt> (read: animation) from GIF files, and a (JavaFX-based) SWING widget to show the animation
-  * Automatically fixes 'bugged' GIF to prevent [hyper-speed animations](http://stackoverflow.com/questions/26801433/fix-frame-rate-of-animated-gif-in-java)
 
-Two concrete implementations of the resampler are implemented, the slightly older <tt>ImageResamplerShort2</tt> which uses a 4-pass strategy:
+Currently, two concrete implementations of the resampler are available, the slightly slower but more mature <tt>ImageResamplerShort2</tt> which uses a 4-pass strategy:
 
 1. Pre-convert
 2. Resample one axis
@@ -42,7 +42,7 @@ Each step is performed by slicing the image up in N strips and calculating those
 
 ---
 
-The newest, still experimental, implementation, <tt>ImageResamplerShort</tt> uses a smart interleaving strategy. The image is chopped into many rectangular pieces, and workers for each of the four steps are instantiated for each piece, with a dependency on the results of the previous worker and neighboring workers. A worker becomes eligible for execution if all dependent workers are completed. All workers are then executed concurrently. Workers which are blocked start whenever they become eligible <i>and</i> a thread is available.
+The slightly faster and experimental implementation, <tt>ImageResamplerShort</tt> uses a smart interleaving strategy. The image is chopped into many rectangular pieces, and workers for each of the four steps are instantiated for each piece, with a dependency on the results of the previous worker and neighboring workers. A worker becomes eligible for execution if all dependent workers are completed. All workers are then executed concurrently. Workers which are blocked start whenever they become eligible <i>and</i> a thread is available.
 
 # Changes
 (compared to [java-image-scaling](https://github.com/mortennobel/java-image-scaling))
