@@ -27,7 +27,7 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Lanczos filter with 3 lobes. Radius = 3. Under/overshoot .
+ * Lanczos filter with 3 lobes. Radius = 3. Under/overshoot present.
  *
  * @author Mark Jeronimus
  */

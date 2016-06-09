@@ -27,8 +27,8 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Hermite resampling resampling curve. Smoother than {@link LinearResamplingCurve} but more pixelated. Radius =
- * 1. No under/overshoot.
+ * Hermite resampling curve. Smoother than {@link LinearResamplingCurve} but more pixelated. Radius = 1. No
+ * under/overshoot.
  *
  * @author Mark Jeronimus
  */

@@ -31,9 +31,33 @@ package org.digitalmodular.imageutilities.resize.filter;
  */
 // Created 2015-08-14
 public interface ResamplingCurve {
-	public String getName();
+	/**
+	 * Returns a short, friendly name of the curve, such as one that you would use in a ComboBox.
+	 *
+	 * @return the name, such as <tt>"Nearest Neighbor"</tt>
+	 */
+	String getName();
 
-	public double getRadius();
+	/**
+	 * Returns the maximum number of fractional pixels in each direction that are needed to calculated the weight values
+	 * for the resampled pixel.
+	 * <p>
+	 * The curve will be defined within the closed range [-radius, radius] and undefined outside. For example, linear
+	 * interpolation needs up to one whole pixel ahead and one pixel behind, so {@code radius = 1.0}.
+	 *
+	 * @return the radius in fractional pixels
+	 */
+	double getRadius();
 
-	public double apply(double value);
+	/**
+	 * Calculates and returns the value of the curve at the specified fractional pixel position.
+	 * <p>
+	 * The absolute value of {@code value} should not exceed {@link #getRadius()}. The value at position {@code 0.0}
+	 * should be {@code 1.0} to prevent brightening or darkening the image. If at other integer positions (other
+	 * than {@code x = 0.0}) the values is not {@code 0.0}, the image will be blurred.
+	 *
+	 * @param x the fractional pixel position
+	 * @return the value of the curve at position {@code x}
+	 */
+	double apply(double x);
 }
