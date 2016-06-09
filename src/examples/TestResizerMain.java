@@ -1,3 +1,5 @@
+package examples;
+
 import java.awt.Color;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionListener;
@@ -16,7 +18,7 @@ import org.digitalmodular.imageutilities.util.SizeInt;
 /**
  * @author Mark Jeronimus
  */
-// date 2015-08-13
+// Created 2015-08-13
 public class TestResizerMain extends JFrame implements MouseMotionListener {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
@@ -43,7 +45,7 @@ public class TestResizerMain extends JFrame implements MouseMotionListener {
 	public TestResizerMain() throws IOException, InterruptedException {
 		super(TestResizerMain.class.getSimpleName());
 
-		BufferedImage resized = resizeImage("Konachan.com - 68384.jpg");
+		BufferedImage resized = resizeImage("testimages/grayshort.png");
 
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setUndecorated(true);

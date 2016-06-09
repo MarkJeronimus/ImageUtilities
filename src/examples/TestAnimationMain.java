@@ -1,3 +1,5 @@
+package examples;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -14,7 +16,7 @@ import org.digitalmodular.imageutilities.util.SizeInt;
 /**
  * @author Mark Jeronimus
  */
-// date 2015-08-13
+// Created 2015-08-13
 public class TestAnimationMain extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {

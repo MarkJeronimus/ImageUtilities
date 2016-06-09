@@ -1,26 +1,23 @@
+package examples;
+
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;
-import org.digitalmodular.imageutilities.resize.filter.Lanczos3ResamplingCurve;
 import org.digitalmodular.imageutilities.util.SizeInt;
 
 /**
  * @author Mark Jeronimus
  */
-// date 2015-08-13
+// Created 2015-08-13
 public class BatchResizer {
 	public static void main(String[] args) {
 		resizeFolder("d:\\desktops\\a", "d:\\Desktops\\a", new SizeInt(9999, 1920));
 	}
 
 	private static ImageResamplerShort resampler = new ImageResamplerShort();
-
-	static {
-		resampler.setFilter(Lanczos3ResamplingCurve.INSTANCE);
-	}
 
 	public static void resizeFolder(String srcPath, String dstPath, SizeInt targetSize) {
 		for (File file : new File(srcPath).listFiles()) {

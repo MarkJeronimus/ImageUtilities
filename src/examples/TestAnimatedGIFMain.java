@@ -1,3 +1,5 @@
+package examples;
+
 import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -12,7 +14,7 @@ import org.digitalmodular.imageutilities.util.SizeInt;
 /**
  * @author Mark Jeronimus
  */
-// date 2015-08-13
+// Created 2015-08-13
 public class TestAnimatedGIFMain extends JFrame {
 	public static void main(String[] args) {
 		SwingUtilities.invokeLater(() -> {
@@ -30,7 +32,7 @@ public class TestAnimatedGIFMain extends JFrame {
 	public TestAnimatedGIFMain() throws IOException, InterruptedException {
 		super(TestAnimatedGIFMain.class.getSimpleName());
 
-		AnimationFrame[] frames = ImageUtilities.loadGIFAsFrames(new File("92f3f151637fae47900e16179d35d354.gif"));
+		AnimationFrame[] frames = ImageUtilities.loadGIFAsFrames(new File("testimages/Clouds_at_Tarfala.gif"));
 
 		ImageResamplerShort resampler = new ImageResamplerShort();
 
