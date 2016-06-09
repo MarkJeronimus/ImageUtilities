@@ -27,8 +27,8 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Box curve. For enlarging this works as a nearest-neigbor filter and for downscaling this works as an
- * area-averaging filter). Radius = 0.5. No under/overshoot.
+ * Box curve. For enlarging this works as a nearest-neighbor filter and for shrinking this works as an area-averaging
+ * filter). Radius = 0.5. No under/overshoot.
  *
  * @author Mark Jeronimus
  */
@@ -38,7 +38,7 @@ public class BoxResamplingCurve implements ResamplingCurve {
 
 	@Override
 	public String getName() {
-		return "Nearest Neighbor";
+		return "Box filter";
 	}
 
 	@Override
