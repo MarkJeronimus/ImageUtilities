@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,8 @@ package org.digitalmodular.imageutilities.resize.filter;
  * Lanczos filter with 8 lobes. Radius = 8. Under/overshoot extreme.
  *
  * @author Mark Jeronimus
- * @since 1.0
  */
-// date 2015-08-14
+// Created 2015-08-14
 public class Lanczos8ResamplingCurve extends Lanczos3ResamplingCurve {
 	public static final Lanczos8ResamplingCurve INSTANCE = new Lanczos8ResamplingCurve();
 

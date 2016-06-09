@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,9 +45,8 @@ import org.digitalmodular.imageutilities.util.SizeInt;
  *
  * @param <I> The type of image that can be resized by this algorithm
  * @author Mark Jeronimus
- * @since 1.0
  */
-// Date 2015-08-15
+// Created 2015-08-15
 public abstract class AbstractImageResizer<I> implements ImageResizer {
 
 	// User data

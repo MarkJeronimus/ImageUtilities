@@ -26,7 +26,7 @@ While it has tons of features, simply resizing an image is easy with the default
   * Progress listeners (custom API for more flexibility)
   * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty) and a utility to convert such images to a compatible format so you can resize them many times, e.g. when resizing a window.
   * GIF loader fixes 'bugged' GIFs to prevent [hyper-speed animations](http://stackoverflow.com/questions/26801433/fix-frame-rate-of-animated-gif-in-java)
-  * Performance timer (spams some debug stuff to the console while resizing)
+  * Performance timer, image analyzer, and other loggable stuff.
   * Auto-select resampling-curve (experimental). This can select a less 'accurate' filter than Lanczos3 depending on the enlargement factor
   * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt>) and condition (default: <tt>ALWAYS</tt>)
   * Utilities to create an <tt>AnimationFrame[]</tt> (read: animation) from GIF files, and a (JavaFX-based) SWING widget to show the animation

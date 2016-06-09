@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -63,11 +63,10 @@ import org.w3c.dom.NodeList;
 
 /**
  * @author Mark Jeronimus
- * @since 1.0
  */
-// Date 2009-04-28
-// Date 2015-08-15 added functions for AbstractImageResizer
-// Date 2015-09-08 added functions animations
+// Created 2009-04-28
+// Changed 2015-08-15 added functions for AbstractImageResizer
+// Changed 2015-09-08 added functions animations
 public enum ImageUtilities {
 	;
 
@@ -163,7 +162,7 @@ public enum ImageUtilities {
 				}
 			}
 
-			System.out.println(foundBug);
+			Logger.getLogger(ImageUtilities.class.getName()).finer("foundBug: " + foundBug);
 
 			if (!foundBug) {
 				// Load non-buggy GIF the normal way
@@ -228,7 +227,7 @@ public enum ImageUtilities {
 			ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
 			reader.setInput(inputStream);
 
-			int              numImages = 1;//reader.getNumImages(true);
+			int              numImages = reader.getNumImages(true);
 			AnimationFrame[] frames    = new AnimationFrame[numImages];
 
 			BufferedImage image = null;

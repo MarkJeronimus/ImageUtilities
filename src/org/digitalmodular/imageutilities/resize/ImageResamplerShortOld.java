@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,9 +30,10 @@ import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.util.concurrent.ExecutionException;
+import java.util.logging.Logger;
 import org.digitalmodular.imageutilities.ImageUtilities;
 
-//@formatter:off // Eclipse formatter changes link semantics by breaking on a dash (thinks it's a hyphen)
+//@formatter:off // Eclipse formatter changes link semantics by word-wrapping on a dash (it thinks it's a hyphen)
 
 /**
  * Based on work from java-image-scaling
@@ -53,11 +54,10 @@ import org.digitalmodular.imageutilities.ImageUtilities;
  * linearly convert to and from byte images.
  *
  * @author Mark Jeronimus
- * @since 1.0
  */
 //@formatter:on
-// Date 2015-08-14
-public class ImageResamplerShort2 extends AbstractImageResampler {
+// Created 2015-08-14
+public class ImageResamplerShortOld extends AbstractImageResampler {
 	protected static final short[] BYTE_SRGB_TO_SHORT  = new short[256];
 	protected static final short[] BYTE_SRGB_TO_SHORT2 = new short[256];
 	protected static final byte[]  SHORT_TO_BYTE_SRGB  = new byte[65536];
@@ -79,11 +79,11 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 		}
 	}
 
-	public static final double toSRGB(double f) {
+	public static double toSRGB(double f) {
 		return f < 0.0031308f ? f * 12.92f : Math.pow(f, 1 / 2.4) * 1.055f - 0.055f;
 	}
 
-	public static final double fromSRGB(double f) {
+	public static double fromSRGB(double f) {
 		return f < 0.04045f ? f / 12.92f : Math.pow((f + 0.055f) / 1.055f, 2.4);
 	}
 
@@ -117,27 +117,26 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 		long effortV1 = (long) dstWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1);
 
 		if (!doH && !doV) {
-// System.out.println("Effort matrix: 0 0 / 0 0");
-// System.out.println("Resizing order: no resize");
-// return image;
+			Logger.getLogger(getClass().getName()).finest("Effort matrix: 0 0 / 0 0");
+			Logger.getLogger(getClass().getName()).finer("Resizing order: no resize");
+			return image;
 		} else if (!doV) {
-// System.out.println("Effort matrix: " + effortH0 + " 0 / 0 " + effortH1);
 			horizontalFirst = true;
-// System.out.println("Resizing order: Horzontal only");
+			Logger.getLogger(getClass().getName()).finest("Effort matrix: " + effortH0 + " 0 / 0 " + effortH1);
+			Logger.getLogger(getClass().getName()).finer("Resizing order: Horizontal only");
 		} else if (!doH) {
-// System.out.println("Effort matrix: 0 " + effortV0 + " / " + effortV1 + " " + 0);
 			horizontalFirst = false;
-// System.out.println("Resizing order: Vertical only");
+			Logger.getLogger(getClass().getName()).finest("Effort matrix: 0 " + effortV0 + " / " + effortV1 + " " + 0);
+			Logger.getLogger(getClass().getName()).finer("Resizing order: Vertical only");
 		} else {
-// System.out.println("Effort matrix: "
-// + effortH0 + " " + effortV0 + " / "
-// + effortV1 + " " + effortH1);
 			horizontalFirst = effortH0 + effortV1 < effortV0 + effortH1;
-// System.out.println("Resizing order: " + (horizontalFirst? "Horzontal" : "Vertical") + " first");
+			Logger.getLogger(getClass().getName()).finest("Effort matrix: " + effortH0 + " " + effortV0 +
+			                                              " / " + effortV1 + " " + effortH1);
+			Logger.getLogger(getClass().getName()).finer("Resizing order: " +
+			                                             (horizontalFirst ? "Horizontal" : "Vertical") + " first");
 		}
 
-// System.out.print("input img: ");
-// ImageUtilities.analyzeImage(image);
+		Logger.getLogger(getClass().getName()).finer("input img: " + ImageUtilities.analyzeImage(image));
 
 		BufferedImage src;
 		if (imageIsCompatible(image)) {
@@ -155,7 +154,7 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 		hasAlpha = src.getColorModel().hasAlpha();
 		srcIsSRGB = srcColorType != ColorSpace.CS_LINEAR_RGB;
 		srcIsPreAlpha = src.getColorModel().isAlphaPremultiplied();
-		// IMPROVE: extra check to see if entire palette (except transparent index) is gray
+		// IMPROVE: extra check to see if entire palette (except transparent index) is grayscale
 
 		// Convert input image to short
 		final byte[] inPixels  = ((DataBufferByte) src.getRaster().getDataBuffer()).getData();
@@ -199,10 +198,6 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 
 				int           workArea   = dstWidth * srcHeight * numBands;
 				final short[] workPixels = new short[workArea];
-// System.out.println(srcPixels.length / 10000 / numBands + "\t"
-// + workArea / 10000 / numBands + "\t" + dstArea / 10000 / numBands
-// + "\t(" + (srcWidth * dstHeight * numBands) / 10000 / numBands
-// + ")");
 
 				t1 = System.nanoTime();
 				processHorizontal(srcPixels, workPixels, srcHeight);
@@ -218,10 +213,6 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 
 				int           workArea   = srcWidth * dstHeight * numBands;
 				final short[] workPixels = new short[workArea];
-// System.out.println(srcPixels.length / 10000 / numBands + "\t"
-// + workArea / 10000 / numBands + "\t" + dstArea / 10000 / numBands
-// + "\t(" + (dstWidth * srcHeight * numBands) / 10000 / numBands
-// + ")");
 
 				t1 = System.nanoTime();
 				processVertical(srcPixels, workPixels, srcWidth);
@@ -237,8 +228,7 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 				srcColorType,
 				hasAlpha, srcIsPreAlpha);
 
-// System.out.print("output img: ");
-// ImageUtilities.analyzeImage(out);
+		Logger.getLogger(getClass().getName()).finer("output img: " + ImageUtilities.analyzeImage(out));
 
 		// Convert destination image back to bytes (and non-linear color space)
 		final byte[] outPixels = ((DataBufferByte) out.getRaster().getDataBuffer()).getData();
@@ -250,12 +240,17 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 		long effortV = horizontalFirst ? effortV1 : effortV0;
 		long effortD = dstWidth * dstHeight;
 		long effortA = effortS + effortD;
-// System.out.printf("preconvert %7.2f (%,8.2f mpps)\n", (t1 - t0) / 1e6, effortS * 1e3 / (t1 - t0));
-// System.out.printf("horizontal %7.2f (%,8.2f mpps)\n", (t2 - t1) / 1e6, effortH * 1e3 / (t2 - t1));
-// System.out.printf("vertical %7.2f (%,8.2f mpps)\n", (t3 - t2) / 1e6, effortV * 1e3 / (t3 - t2));
-// System.out.printf("postconvert %7.2f (%,8.2f mpps)\n", (t4 - t3) / 1e6, effortD * 1e3 / (t4 - t3));
-// System.out.printf("#resize %7.2f (%,8.2f mpps)\n", (t4 - t0) / 1e6, effortA * 1e3 / (t4 - t0));
-		System.out.println((t4 - t0 + 500000) / 1000000);
+		Logger.getLogger(getClass().getName()).finest(String.format(
+				"preconvert %7.2f (%,8.2f mpps)\n", (t1 - t0) / 1e6, effortS * 1e3 / (t1 - t0)));
+		Logger.getLogger(getClass().getName()).finest(String.format(
+				"horizontal %7.2f (%,8.2f mpps)\n", (t2 - t1) / 1e6, effortH * 1e3 / (t2 - t1)));
+		Logger.getLogger(getClass().getName()).finest(String.format(
+				"vertical %7.2f (%,8.2f mpps)\n", (t3 - t2) / 1e6, effortV * 1e3 / (t3 - t2)));
+		Logger.getLogger(getClass().getName()).finest(String.format(
+				"postconvert %7.2f (%,8.2f mpps)\n", (t4 - t3) / 1e6, effortD * 1e3 / (t4 - t3)));
+		Logger.getLogger(getClass().getName()).finest(String.format(
+				"#resize %7.2f (%,8.2f mpps)\n", (t4 - t0) / 1e6, effortA * 1e3 / (t4 - t0)));
+		Logger.getLogger(getClass().getName()).finer(Long.toString((t4 - t0 + 500000) / 1000000));
 
 		// GC this:
 		horizontalSamplingData = null;
@@ -289,7 +284,7 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 						preConvertSRGBAlpha(inPixels, outPixels, begin, end);
 					} else {
 						// convert, linearize colors only, pre-multiply alpha
-						preConvertSRGBAlphapremultiply(inPixels, outPixels, begin, end);
+						preConvertSRGBAlphaPremultiply(inPixels, outPixels, begin, end);
 					}
 				}
 				return null;
@@ -452,7 +447,7 @@ public class ImageResamplerShort2 extends AbstractImageResampler {
 		}
 	}
 
-	private void preConvertSRGBAlphapremultiply(final byte[] inPixels, final short[] outPixels,
+	private void preConvertSRGBAlphaPremultiply(final byte[] inPixels, final short[] outPixels,
 	                                            final int begin, final int end) {
 		int q = begin;
 		switch (numBands) {

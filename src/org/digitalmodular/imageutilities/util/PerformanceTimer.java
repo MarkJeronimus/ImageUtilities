@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -37,9 +37,20 @@ public class PerformanceTimer {
 	private String       format       = "%7.2f";
 	private List<Long>   durations    = new ArrayList<>();
 	private List<String> descriptions = new ArrayList<>();
+
+	private static boolean printingEnabled = false;
+
 	private long startTime;
 	private long lastTime;
 	private int  longestDescription;
+
+	public static boolean isPrintingEnabled() {
+		return printingEnabled;
+	}
+
+	public static void setPrintingEnabled(boolean printingEnabled) {
+		PerformanceTimer.printingEnabled = printingEnabled;
+	}
 
 	public void reset() {
 		durations.clear();
@@ -61,6 +72,8 @@ public class PerformanceTimer {
 	}
 
 	public void printResults() {
+		if (!printingEnabled) return;
+
 		String formatString = "%-" + longestDescription + "s " + format + "\n";
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = durations.get(i);
@@ -75,6 +88,8 @@ public class PerformanceTimer {
 	 * @param workload
 	 */
 	public void printResults(double workload) {
+		if (!printingEnabled) return;
+
 		String formatString = "%-" + longestDescription + "s " + format + " (%,9.2f)\n";
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = durations.get(i);
@@ -84,6 +99,8 @@ public class PerformanceTimer {
 	}
 
 	public void printTotal() {
+		if (!printingEnabled) return;
+
 		String formatString = "%-" + longestDescription + "s " + format + "\n";
 		long   duration     = lastTime - startTime;
 		String description  = "Total";
@@ -96,6 +113,8 @@ public class PerformanceTimer {
 	 * @param workload
 	 */
 	public void printTotal(long workload) {
+		if (!printingEnabled) return;
+
 		String formatString = "%-" + longestDescription + "s " + format + " (%,9.2f)\n";
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = lastTime - startTime;

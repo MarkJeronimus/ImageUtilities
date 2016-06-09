@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -60,7 +60,6 @@ import org.digitalmodular.imageutilities.util.ProgressEvent;
  * convert to and from byte images.
  *
  * @author Mark Jeronimus
- * @since 1.0
  */
 // Created 2015-08-14
 public class ImageResamplerShort extends AbstractImageResampler {
@@ -179,7 +178,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 		long effortX1 = doX ? (long) dstHeight * dstWidth * (calculateNumSamples(filter, scaleWidth) + 1) : 0;
 		long effortY1 = doY ? (long) dstWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1) : 0;
 
-		Logger.getGlobal().finest("Efforts: " + effortX0 + " " + effortY1 + " <> " + effortY0 + " " + effortX1);
+		Logger.getLogger(getClass().getName()).finest("Efforts: " + effortX0 + " " + effortY1 + " <> " + effortY0 + " " + effortX1);
 
 		ResamplingOrder order;
 		if (!doX && !doY)
@@ -193,7 +192,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 		else
 			order = ResamplingOrder.Y_FIRST;
 
-		Logger.getGlobal().finest("Resampling order: " + order);
+		Logger.getLogger(getClass().getName()).finer("Resampling order: " + order);
 		return order;
 	}
 

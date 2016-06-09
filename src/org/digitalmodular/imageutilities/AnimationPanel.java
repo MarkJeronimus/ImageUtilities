@@ -1,7 +1,7 @@
 /*
  * This file is part of ImageUtilities.
  *
- * Copyleft 2014 Mark Jeronimus. All Rights Reversed.
+ * Copyleft 2016 Mark Jeronimus. All Rights Reversed.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@ import javafx.util.Duration;
 /**
  * @author Mark Jeronimus
  */
-// date 2015-09-08
+// Created 2015-09-08
 public class AnimationPanel extends JFXPanel {
 	public AnimationPanel(AnimationFrame... frames) {
 		super();
