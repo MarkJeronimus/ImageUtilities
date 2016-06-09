@@ -5,7 +5,7 @@ Library with:
 * Output dimension calculator
 * Custom animation API (and full GIF reading support)
 
-This grew out of a need for a high-quality, real-time image resizing that can compete with programs coded in c++, yet written in pure Java. Along the way, I read some websites and books on resizing theory, color theory and concurrency, and implemented those suggestions (e.g. sRGB correction, which all major photo editing programs and browsers do wrong).
+This grew out of a need for a high-quality, real-time image resizing that can compete with programs coded in c++, yet written in pure Java. Considering [java-image-scaling](https://github.com/mortennobel/java-image-scaling) to be dead since 2014, I prepared to develop something on my own. Along the way, I read some websites and books on resizing theory, color theory and concurrency, and implemented those suggestions (e.g. sRGB correction, which all major photo editing programs and browsers do wrong).
 
 While it has tons of features, simply resizing an image is easy with the default settings. The only thing that needs to be done is instantiating a <tt>Resizer</tt>, setting the output size, and invoking the <tt>resize(BufferedImage)</tt> method.
 
