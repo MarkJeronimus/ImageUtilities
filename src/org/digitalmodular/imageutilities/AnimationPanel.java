@@ -30,9 +30,6 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.util.Objects;
-
-import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
-
 import javafx.animation.Animation;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
@@ -46,6 +43,8 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.util.Duration;
+
+import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 
 /**
  * @author Mark Jeronimus

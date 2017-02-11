@@ -39,7 +39,8 @@ public interface ResamplingCurve {
 	String getName();
 
 	/**
-	 * Returns the maximum number of fractional pixels in each direction that are needed to calculated the weight values
+	 * Returns the maximum number of fractional pixels in each direction that are needed to calculated the weight
+	 * values
 	 * for the resampled pixel.
 	 * <p>
 	 * The curve will be defined within the closed range [-radius, radius] and undefined outside. For example, linear

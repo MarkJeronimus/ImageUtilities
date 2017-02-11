@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;
@@ -36,7 +37,7 @@ public class TestAnimatedGIFMain extends JFrame {
 
 		ImageResamplerShort resampler = new ImageResamplerShort();
 
-		SizeInt targetSize = new SizeInt(2000,1500);
+		SizeInt targetSize = new SizeInt(2000, 1500);
 		SizeInt imageSize  = frames[0].getSize();
 		SizeInt newSize    = ImageUtilities.getScalingSize(imageSize, targetSize);
 

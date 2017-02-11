@@ -43,6 +43,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
+import static java.util.Objects.requireNonNull;
 import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
 import javax.imageio.ImageReader;
@@ -55,11 +56,11 @@ import javax.imageio.stream.ImageOutputStream;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import static java.util.Objects.requireNonNull;
-import org.digitalmodular.imageutilities.util.SizeInt;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+
+import org.digitalmodular.imageutilities.util.SizeInt;
 
 /**
  * @author Mark Jeronimus
@@ -196,7 +197,7 @@ public enum ImageUtilities {
 								if ("delayTime".equals(attribute.getNodeName())
 								    && "0".equals(attribute.getNodeValue())) {
 									// Overwrite with the intended delay value
-									((IIOMetadataNode) node).setAttribute("delayTime", "10");
+									((IIOMetadataNode)node).setAttribute("delayTime", "10");
 									break;
 								}
 							}
@@ -234,7 +235,7 @@ public enum ImageUtilities {
 
 			for (int i = 0; i < numImages; i++) {
 				IIOMetadata     metadata = reader.getImageMetadata(i);
-				IIOMetadataNode tree     = (IIOMetadataNode) metadata.getAsTree(metadata.getNativeMetadataFormatName());
+				IIOMetadataNode tree     = (IIOMetadataNode)metadata.getAsTree(metadata.getNativeMetadataFormatName());
 
 				Logger.getGlobal().info(dumpTree(new StringBuilder(), tree, 0).toString());
 
@@ -353,7 +354,7 @@ public enum ImageUtilities {
 
 	public static String analyzeImage(Image img) {
 		if (img instanceof BufferedImage) {
-			BufferedImage image       = (BufferedImage) img;
+			BufferedImage image       = (BufferedImage)img;
 			int           srcDataType = image.getRaster().getDataBuffer().getDataType();
 			int srcColorType = ImageUtilities
 					.getColorSpaceType(image.getColorModel().getColorSpace());
@@ -525,8 +526,8 @@ public enum ImageUtilities {
 			case SAME_DIAGONAL:
 				double vDia = Math.hypot(targetSize.getWidth(), targetSize.getHeight());
 				double iDia = Math.hypot(imageSize.getWidth(), imageSize.getHeight());
-				width = (int) Math.rint(imageSize.getWidth() * vDia / iDia);
-				height = (int) Math.rint(imageSize.getHeight() * vDia / iDia);
+				width = (int)Math.rint(imageSize.getWidth() * vDia / iDia);
+				height = (int)Math.rint(imageSize.getHeight() * vDia / iDia);
 				break;
 			case SAME_CIRCUMFERENCE:
 				int vSum = targetSize.getWidth() + targetSize.getHeight();
@@ -579,7 +580,7 @@ public enum ImageUtilities {
 		int width  = image.getWidth(null);
 		int height = image.getHeight(null);
 		boolean transparent = image instanceof Transparency
-		                      && ((Transparency) image).getTransparency() != Transparency.OPAQUE;
+		                      && ((Transparency)image).getTransparency() != Transparency.OPAQUE;
 
 		BufferedImage out = new BufferedImage(width, height, transparent
 		                                                     ? BufferedImage.TYPE_INT_ARGB
@@ -600,7 +601,7 @@ public enum ImageUtilities {
 		                                                     : BufferedImage.TYPE_INT_RGB);
 		out.setAccelerationPriority(0);
 
-		int[] buffer = ((DataBufferInt) out.getRaster().getDataBuffer()).getData();
+		int[] buffer = ((DataBufferInt)out.getRaster().getDataBuffer()).getData();
 		System.arraycopy(data, 0, buffer, 0, buffer.length);
 
 		return out;

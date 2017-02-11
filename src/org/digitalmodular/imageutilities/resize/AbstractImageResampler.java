@@ -43,7 +43,9 @@ import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.resize.filter.CubicResamplingCurve;
 import org.digitalmodular.imageutilities.resize.filter.Lanczos3ResamplingCurve;
@@ -88,10 +90,10 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 	}
 
 	public void autoSelectFilter(SizeInt imageSize, SizeInt newSize) {
-		double factor = Math.max(Math.max(newSize.getWidth() / (double) imageSize.getWidth(),
-		                                  newSize.getHeight() / (double) imageSize.getHeight()),
-		                         Math.max(imageSize.getWidth() / (double) newSize.getWidth(),
-		                                  imageSize.getHeight() / (double) newSize.getHeight()));
+		double factor = Math.max(Math.max(newSize.getWidth() / (double)imageSize.getWidth(),
+		                                  newSize.getHeight() / (double)imageSize.getHeight()),
+		                         Math.max(imageSize.getWidth() / (double)newSize.getWidth(),
+		                                  imageSize.getHeight() / (double)newSize.getHeight()));
 
 		if (factor >= 4)
 			setFilter(Lanczos3ResamplingCurve.INSTANCE);
@@ -118,7 +120,7 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 			return false;
 		}
 
-		BufferedImage img = (BufferedImage) image;
+		BufferedImage img = (BufferedImage)image;
 
 		// Known compatible types
 		int srcType = img.getType();
@@ -143,11 +145,11 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 	@Override
 	public synchronized BufferedImage makeImageCompatible(Image image) {
 		if (imageIsCompatible(image)) {
-			return (BufferedImage) image;
+			return (BufferedImage)image;
 		}
 
 		if (image instanceof BufferedImage) {
-			BufferedImage img        = (BufferedImage) image;
+			BufferedImage img        = (BufferedImage)image;
 			int           width      = img.getWidth();
 			int           height     = img.getHeight();
 			int           colorType  = ImageUtilities.getColorSpaceType(img.getColorModel().getColorSpace());
@@ -167,7 +169,8 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 			ColorConvertOp op = new ColorConvertOp(temp.getColorModel().getColorSpace(), null);
 			img = op.filter(img, temp);
 
-			Logger.getGlobal().finest("pre-converted img: " + ImageUtilities.analyzeImage(img));
+			if (Logger.getGlobal().isLoggable(Level.FINEST))
+				Logger.getGlobal().finest("pre-converted img: " + ImageUtilities.analyzeImage(img));
 
 			return img;
 		}
@@ -186,14 +189,12 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 	/**
 	 * Calculates the minimum number of samples required to cover the resampling curve.
 	 *
-	 * @param filter
-	 * @param scale  the scaling factor, {@code < 1} means shrinking.
-	 * @return
+	 * @param scale the scaling factor, {@code < 1} means shrinking.
 	 */
 	protected static int calculateNumSamples(ResamplingCurve filter, double scale) {
 		double samplingRadius = getSamplingRadius(filter, scale);
 
-		return (int) Math.ceil(samplingRadius * 2);
+		return (int)Math.ceil(samplingRadius * 2);
 	}
 
 	protected static SamplingData createSubSampling(ResamplingCurve filter, int srcSize, int dstSize,
@@ -215,15 +216,15 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 			int    subIndex = k;
 			double center   = i / scale + centerOffset;
 
-			int left  = (int) Math.ceil(center - samplingRadius);
+			int left  = (int)Math.ceil(center - samplingRadius);
 			int right = left + numSamples;
 
 			for (int j = left; j < right; j++) {
 				float weight;
 				if (scale < 1)
-					weight = (float) filter.apply((j - center) * scale);
+					weight = (float)filter.apply((j - center) * scale);
 				else
-					weight = (float) filter.apply(j - center);
+					weight = (float)filter.apply(j - center);
 
 				int n = j < 0 ? 0 : j >= srcSize ? srcSize - 1 : j;
 
@@ -284,9 +285,9 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 				Throwable th = ex.getCause();
 				// Check if it is one of the unchecked throwables
 				if (th instanceof RuntimeException) {
-					throw (RuntimeException) th;
+					throw (RuntimeException)th;
 				} else if (th instanceof Error) {
-					throw (Error) th;
+					throw (Error)th;
 				} else {
 					throw new AssertionError("Unhandled checked exception", th);
 				}
@@ -335,9 +336,7 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 	/**
 	 * Calculates the sampling radius of the resampling curve, in source scalespace.
 	 *
-	 * @param filter
-	 * @param scale  the scaling factor, {@code < 1} means shrinking.
-	 * @return
+	 * @param scale the scaling factor, {@code < 1} means shrinking.
 	 */
 	private static double getSamplingRadius(ResamplingCurve filter, double scale) {
 		double curveRadius = filter.getRadius();

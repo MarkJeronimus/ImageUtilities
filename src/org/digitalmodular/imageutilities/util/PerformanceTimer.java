@@ -84,8 +84,6 @@ public class PerformanceTimer {
 
 	/**
 	 * Prints the durations of each record and the amount of work performed per second in each step.
-	 *
-	 * @param workload
 	 */
 	public void printResults(double workload) {
 		if (!printingEnabled) return;
@@ -109,8 +107,6 @@ public class PerformanceTimer {
 
 	/**
 	 * Prints the total duration and the amount of work performed per second.
-	 *
-	 * @param workload
 	 */
 	public void printTotal(long workload) {
 		if (!printingEnabled) return;

@@ -33,6 +33,7 @@ import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
+
 import org.digitalmodular.imageutilities.util.PerformanceTimer;
 import org.digitalmodular.imageutilities.util.PointDouble;
 import org.digitalmodular.imageutilities.util.ProgressEvent;
@@ -86,7 +87,7 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	public void setOutputSize(SizeInt outputSize) {
 		if (outputSize != null) {
 			if (outputSize.getWidth() == 0 || outputSize.getHeight() == 0) {
-				throw new IllegalArgumentException("Dimensionb: " + outputSize);
+				throw new IllegalArgumentException("Dimension: " + outputSize);
 			} else if (outputSize.getWidth() < 0 || outputSize.getHeight() < 0) {
 				throw new IllegalArgumentException("Negative values won't flip the image: " + outputSize);
 			}
@@ -142,8 +143,6 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 * grayscale images. Grayscale images are <i>always</i> assumed to be in sRGB.
 	 * <p>
 	 * Ignoring the color-space might speed up the resizing algorithm at the cost of accuracy.
-	 *
-	 * @param ignoreSRGB
 	 */
 	@Override
 	public void setIgnoreSRGB(boolean ignoreSRGB) {
@@ -156,14 +155,13 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	}
 
 	/**
-	 * Set whether to pre-multiply and un-multiply the alpha values before and after resizing. Default is {@code false}.
+	 * Set whether to pre-multiply and un-multiply the alpha values before and after resizing. Default is {@code
+	 * false}.
 	 * <p>
 	 * Set to true if you don't want the algorithm to pre-multiply alpha beforehand and un-multiply afterwards.
 	 * If the image to resize already has it's alpha pre-multiplied, then this flag has no effect.
 	 * <p>
 	 * Ignoring the alpha channel might speed up the resizing algorithm at the cost of accuracy.
-	 *
-	 * @param dontPreAlpha
 	 */
 	@Override
 	public void setDontPreAlpha(boolean dontPreAlpha) {
@@ -177,8 +175,6 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 
 	/**
 	 * Set how the pixels beyond the edge are read. Default is {@link EdgeMode#CLAMP}.
-	 *
-	 * @param edgeMode
 	 */
 	@Override
 	public void setEdgeMode(EdgeMode edgeMode) {
@@ -198,16 +194,16 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 			dstWidth = outputSize.getWidth();
 			dstHeight = outputSize.getHeight();
 		} else {
-			dstWidth = Math.max(1, (int) Math.ceil(srcWidth * outputScale.getWidth()));
-			dstHeight = Math.max(1, (int) Math.ceil(srcHeight * outputScale.getHeight()));
+			dstWidth = Math.max(1, (int)Math.ceil(srcWidth * outputScale.getWidth()));
+			dstHeight = Math.max(1, (int)Math.ceil(srcHeight * outputScale.getHeight()));
 		}
 
 		if (outputScale != null) {
 			scaleWidth = outputScale.getWidth();
 			scaleHeight = outputScale.getHeight();
 		} else {
-			scaleWidth = dstWidth / (double) srcWidth;
-			scaleHeight = dstHeight / (double) srcHeight;
+			scaleWidth = dstWidth / (double)srcWidth;
+			scaleHeight = dstHeight / (double)srcHeight;
 		}
 
 		if (outputOffset != null) {
@@ -244,8 +240,6 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 * For example, most algorithms only operate on bytes. An image with packed integers will be converted to an
 	 * image using bytes.
 	 *
-	 * @param image
-	 * @return
 	 * @see #makeImageCompatible(Image)
 	 */
 	public abstract boolean imageIsCompatible(Image image);
@@ -255,9 +249,6 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 * {@link #imageIsCompatible(Image) imageIsCompatible()}).
 	 * <p>
 	 * If the image is already compatible, it's returned unchanged (though type-casted).
-	 *
-	 * @param image
-	 * @return
 	 */
 	public abstract I makeImageCompatible(Image image);
 

@@ -6,5 +6,6 @@ package org.digitalmodular.imageutilities.util;
 
 public interface ProgressListener {
 	void progressUpdated(ProgressEvent e);
+
 	void progressCompleted(ProgressEvent e);
 }

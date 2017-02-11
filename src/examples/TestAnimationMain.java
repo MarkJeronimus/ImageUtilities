@@ -7,6 +7,7 @@ import java.io.IOException;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
+
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;

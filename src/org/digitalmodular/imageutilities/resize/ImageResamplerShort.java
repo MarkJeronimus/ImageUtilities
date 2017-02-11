@@ -33,7 +33,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.util.DependentWorkerQueue;
 import org.digitalmodular.imageutilities.util.ProgressEvent;
@@ -71,16 +73,16 @@ public class ImageResamplerShort extends AbstractImageResampler {
 	static {
 		for (int b = 0; b < 256; b++) {
 			double f = (b & 0xFF) / 255.0;
-			BYTE_SRGB_TO_SHORT[b] = (short) (fromSRGB(f) * 32640 - 16384);
+			BYTE_SRGB_TO_SHORT[b] = (short)(fromSRGB(f) * 32640 - 16384);
 			// With offset already implemented
-			BYTE_SRGB_TO_SHORT2[b] = (short) (BYTE_SRGB_TO_SHORT[b] + 16384);
+			BYTE_SRGB_TO_SHORT2[b] = (short)(BYTE_SRGB_TO_SHORT[b] + 16384);
 		}
 
 		for (int s = -32768; s < 32768; s++) {
 			double f = s < -16384 ? 0 : s >= 16256 ? 1 : (s + 16384) / 32640.0;
-			SHORT_TO_BYTE_SRGB[s & 0xFFFF] = (byte) (toSRGB(f) * 255);
+			SHORT_TO_BYTE_SRGB[s & 0xFFFF] = (byte)(toSRGB(f) * 255);
 			// With offset already implemented
-			SHORT2_TO_BYTE_SRGB[(s + 16384) & 0xFFFF] = (byte) (toSRGB(f) * 255);
+			SHORT2_TO_BYTE_SRGB[(s + 16384) & 0xFFFF] = (byte)(toSRGB(f) * 255);
 		}
 	}
 
@@ -119,7 +121,8 @@ public class ImageResamplerShort extends AbstractImageResampler {
 
 		if (order == ResamplingOrder.NONE) return image;
 
-		Logger.getGlobal().finest("input img: " + ImageUtilities.analyzeImage(image));
+		if (Logger.getGlobal().isLoggable(Level.FINEST))
+			Logger.getGlobal().finest("input img: " + ImageUtilities.analyzeImage(image));
 
 		if (Thread.interrupted()) throw new InterruptedException();
 
@@ -131,11 +134,11 @@ public class ImageResamplerShort extends AbstractImageResampler {
 		BufferedImage out = createCompatibleOutputImage(src);
 
 		// Prepare the work buffers
-		byte[]  srcPixels  = ((DataBufferByte) src.getRaster().getDataBuffer()).getData();
+		byte[]  srcPixels  = ((DataBufferByte)src.getRaster().getDataBuffer()).getData();
 		short[] srcBuffer  = new short[srcPixels.length];
 		short[] workBuffer = makeWorkBuffer(order);
 		short[] dstBuffer  = new short[dstWidth * dstHeight * numBands];
-		byte[]  dstPixels  = ((DataBufferByte) out.getRaster().getDataBuffer()).getData();
+		byte[]  dstPixels  = ((DataBufferByte)out.getRaster().getDataBuffer()).getData();
 
 		if (Thread.interrupted()) throw new InterruptedException();
 
@@ -173,12 +176,13 @@ public class ImageResamplerShort extends AbstractImageResampler {
 
 		// Calculate the work effort of each possible sub-process.
 		// The +1 tweak comes from the store operation for each resampled pixel.
-		long effortX0 = doX ? (long) srcHeight * dstWidth * (calculateNumSamples(filter, scaleWidth) + 1) : 0;
-		long effortY0 = doY ? (long) srcWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1) : 0;
-		long effortX1 = doX ? (long) dstHeight * dstWidth * (calculateNumSamples(filter, scaleWidth) + 1) : 0;
-		long effortY1 = doY ? (long) dstWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1) : 0;
+		long effortX0 = doX ? (long)srcHeight * dstWidth * (calculateNumSamples(filter, scaleWidth) + 1) : 0;
+		long effortY0 = doY ? (long)srcWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1) : 0;
+		long effortX1 = doX ? (long)dstHeight * dstWidth * (calculateNumSamples(filter, scaleWidth) + 1) : 0;
+		long effortY1 = doY ? (long)dstWidth * dstHeight * (calculateNumSamples(filter, scaleHeight) + 1) : 0;
 
-		Logger.getLogger(getClass().getName()).finest("Efforts: " + effortX0 + " " + effortY1 + " <> " + effortY0 + " " + effortX1);
+		Logger.getLogger(getClass().getName())
+		      .finest("Efforts: " + effortX0 + " " + effortY1 + " <> " + effortY0 + " " + effortX1);
 
 		ResamplingOrder order;
 		if (!doX && !doY)
@@ -390,7 +394,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 		                        final int begin, final int end) {
 			int q = begin;
 			for (int p = begin; p < end; p++) {
-				outPixels[q++] = (short) (((inPixels[p] & 0xFF) << 7) - 16384);
+				outPixels[q++] = (short)(((inPixels[p] & 0xFF) << 7) - 16384);
 			}
 		}
 
@@ -404,9 +408,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						final float alphaScale = (a & 0xFF) * 128 / 255f;
 
 						// Alpha channel is already linear
-						outPixels[q++] = (short) (((a & 0xFF) << 7) - 16384);
+						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
 						// Pre-multiply by alpha channel
-						outPixels[q++] = (short) ((inPixels[p++] & 0xFF) * alphaScale - 16384);
+						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
 					}
 					break;
 				case 4:
@@ -415,11 +419,11 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						final float alphaScale = (a & 0xFF) * 128 / 255f;
 
 						// Alpha channel is already linear
-						outPixels[q++] = (short) (((a & 0xFF) << 7) - 16384);
+						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
 						// Pre-multiply by alpha channel
-						outPixels[q++] = (short) ((inPixels[p++] & 0xFF) * alphaScale - 16384);
-						outPixels[q++] = (short) ((inPixels[p++] & 0xFF) * alphaScale - 16384);
-						outPixels[q++] = (short) ((inPixels[p++] & 0xFF) * alphaScale - 16384);
+						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
+						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
+						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
 					}
 			}
 		}
@@ -439,14 +443,14 @@ public class ImageResamplerShort extends AbstractImageResampler {
 				case 2:
 					for (int p = begin; p < end; ) {
 						// Alpha channel is already linear
-						outPixels[q++] = (short) (((inPixels[p++] & 0xFF) << 7) - 16384);
+						outPixels[q++] = (short)(((inPixels[p++] & 0xFF) << 7) - 16384);
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 					}
 					break;
 				case 4:
 					for (int p = begin; p < end; ) {
 						// Alpha channel is already linear
-						outPixels[q++] = (short) (((inPixels[p++] & 0xFF) << 7) - 16384);
+						outPixels[q++] = (short)(((inPixels[p++] & 0xFF) << 7) - 16384);
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
@@ -464,9 +468,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						final float alpha = (a & 0xFF) / 255f;
 
 						// Alpha channel is already linear
-						outPixels[q++] = (short) (((a & 0xFF) << 7) - 16384);
+						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
 						// Pre-multiply by alpha channel
-						outPixels[q++] = (short) (BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha - 16384);
 					}
 					break;
 				case 4:
@@ -475,14 +479,14 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						final int  alpha = a & 0xFF;
 
 						// Alpha channel is already linear
-						outPixels[q++] = (short) ((alpha << 7) - 16384);
+						outPixels[q++] = (short)((alpha << 7) - 16384);
 						// Pre-multiply by alpha channel
-						outPixels[q++] = (short) (BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                          - 16384);
-						outPixels[q++] = (short) (BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                          - 16384);
-						outPixels[q++] = (short) (BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                          - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
+						                         - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
+						                         - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
+						                         - 16384);
 					}
 			}
 		}
@@ -525,7 +529,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample0 += inPixels[offset + indices[index]] * weights[index];
 								index++;
 							}
-							outPixels[(x + y * dstWidth)] = (short) sample0;
+							outPixels[(x + y * dstWidth)] = (short)sample0;
 						}
 					}
 					break;
@@ -545,8 +549,8 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample1 += inPixels[arrPixel + 1] * weight;
 							}
 							int u = (x + y * dstWidth) * 2;
-							outPixels[u] = (short) sample0;
-							outPixels[u + 1] = (short) sample1;
+							outPixels[u] = (short)sample0;
+							outPixels[u + 1] = (short)sample1;
 						}
 					}
 					break;
@@ -568,9 +572,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample2 += inPixels[arrPixel + 2] * weight;
 							}
 							int u = (x + y * dstWidth) * 3;
-							outPixels[u] = (short) sample0;
-							outPixels[u + 1] = (short) sample1;
-							outPixels[u + 2] = (short) sample2;
+							outPixels[u] = (short)sample0;
+							outPixels[u + 1] = (short)sample1;
+							outPixels[u + 2] = (short)sample2;
 						}
 					}
 					break;
@@ -594,10 +598,10 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample3 += inPixels[arrPixel + 3] * weight;
 							}
 							int u = (x + y * dstWidth) * 4;
-							outPixels[u] = (short) sample0;
-							outPixels[u + 1] = (short) sample1;
-							outPixels[u + 2] = (short) sample2;
-							outPixels[u + 3] = (short) sample3;
+							outPixels[u] = (short)sample0;
+							outPixels[u + 1] = (short)sample1;
+							outPixels[u + 2] = (short)sample2;
+							outPixels[u + 3] = (short)sample3;
 						}
 					}
 			}
@@ -644,7 +648,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 							for (int i = 0; i < numSamples; i++) {
 								sample0 += inPixels[x + indices[i]] * weights[i];
 							}
-							outPixels[u++] = (short) sample0;
+							outPixels[u++] = (short)sample0;
 						}
 					}
 					break;
@@ -663,8 +667,8 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample0 += inPixels[arrPixel] * weight;
 								sample1 += inPixels[arrPixel + 1] * weight;
 							}
-							outPixels[u++] = (short) sample0;
-							outPixels[u++] = (short) sample1;
+							outPixels[u++] = (short)sample0;
+							outPixels[u++] = (short)sample1;
 						}
 					}
 					break;
@@ -685,9 +689,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample1 += inPixels[arrPixel + 1] * weight;
 								sample2 += inPixels[arrPixel + 2] * weight;
 							}
-							outPixels[u++] = (short) sample0;
-							outPixels[u++] = (short) sample1;
-							outPixels[u++] = (short) sample2;
+							outPixels[u++] = (short)sample0;
+							outPixels[u++] = (short)sample1;
+							outPixels[u++] = (short)sample2;
 						}
 					}
 					break;
@@ -710,10 +714,10 @@ public class ImageResamplerShort extends AbstractImageResampler {
 								sample2 += inPixels[arrPixel + 2] * weight;
 								sample3 += inPixels[arrPixel + 3] * weight;
 							}
-							outPixels[u++] = (short) sample0;
-							outPixels[u++] = (short) sample1;
-							outPixels[u++] = (short) sample2;
-							outPixels[u++] = (short) sample3;
+							outPixels[u++] = (short)sample0;
+							outPixels[u++] = (short)sample1;
+							outPixels[u++] = (short)sample2;
+							outPixels[u++] = (short)sample3;
 						}
 					}
 			}
@@ -767,7 +771,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 			int q = begin;
 			for (int p = begin; p < end; ) {
 				final short f = inPixels[p++];
-				outPixels[q++] = f <= -16257 ? 0 : f >= 16256 ? -1 : (byte) ((f + 16384) >> 7);
+				outPixels[q++] = f <= -16257 ? 0 : f >= 16256 ? -1 : (byte)((f + 16384) >> 7);
 			}
 		}
 
@@ -782,8 +786,8 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						// Alpha of 0 means all color information is lost. Keep black.
 						final float alphaInv = a <= -16384 || a >= 16256 ? 1 : 32640f / (a + 16384);
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Alpha channel
-						outPixels[q++] = (byte) ((int) ((inPixels[p++] + 16384) * alphaInv) >> 7);
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Alpha channel
+						outPixels[q++] = (byte)((int)((inPixels[p++] + 16384) * alphaInv) >> 7);
 					}
 					break;
 				case 4:
@@ -793,10 +797,10 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						// Alpha of 0 means all color information is lost. Keep black.
 						final float alphaInv = a <= -16384 || a >= 16256 ? 1 : 32640f / (a + 16384);
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Alpha channel
-						outPixels[q++] = (byte) ((int) ((inPixels[p++] + 16384) * alphaInv) >> 7);
-						outPixels[q++] = (byte) ((int) ((inPixels[p++] + 16384) * alphaInv) >> 7);
-						outPixels[q++] = (byte) ((int) ((inPixels[p++] + 16384) * alphaInv) >> 7);
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Alpha channel
+						outPixels[q++] = (byte)((int)((inPixels[p++] + 16384) * alphaInv) >> 7);
+						outPixels[q++] = (byte)((int)((inPixels[p++] + 16384) * alphaInv) >> 7);
+						outPixels[q++] = (byte)((int)((inPixels[p++] + 16384) * alphaInv) >> 7);
 					}
 			}
 		}
@@ -817,7 +821,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 					for (int p = begin; p < end; ) {
 						final short a = inPixels[p++];
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Don't sRGB the alpha channel
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 					}
 					break;
@@ -825,7 +829,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 					for (int p = begin; p < end; ) {
 						final short a = inPixels[p++];
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Don't sRGB the alpha channel
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
@@ -844,8 +848,8 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						// Alpha of 0 means all color information is lost. Keep black.
 						final long alphaInv = a <= -16384 || a >= 16256 ? 65536L : 65536L * 32640 / (a + 16384);
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Don't sRGB the alpha channel
-						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short) ((inPixels[p++] + 16384) * alphaInv >> 16)
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short)((inPixels[p++] + 16384) * alphaInv >> 16)
 						                                     & 0xFFFF];
 					}
 					break;
@@ -856,12 +860,12 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						// Alpha of 0 means all color information is lost. Keep black.
 						final long alphaInv = a <= -16384 || a >= 16256 ? 65536L : 65536L * 32640 / (a + 16384);
 
-						outPixels[q++] = (byte) ((a + 16384) >> 7); // Don't sRGB the alpha channel
-						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short) ((inPixels[p++] + 16384) * alphaInv >> 16)
+						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short)((inPixels[p++] + 16384) * alphaInv >> 16)
 						                                     & 0xFFFF];
-						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short) ((inPixels[p++] + 16384) * alphaInv >> 16)
+						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short)((inPixels[p++] + 16384) * alphaInv >> 16)
 						                                     & 0xFFFF];
-						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short) ((inPixels[p++] + 16384) * alphaInv >> 16)
+						outPixels[q++] = SHORT2_TO_BYTE_SRGB[(short)((inPixels[p++] + 16384) * alphaInv >> 16)
 						                                     & 0xFFFF];
 					}
 					break;

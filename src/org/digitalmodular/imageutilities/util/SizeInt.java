@@ -5,6 +5,8 @@
  */
 package org.digitalmodular.imageutilities.util;
 
+import java.awt.image.BufferedImage;
+
 public class SizeInt {
 	private final int width;
 	private final int height;
@@ -12,6 +14,11 @@ public class SizeInt {
 	public SizeInt(int width, int height) {
 		this.width = width;
 		this.height = height;
+	}
+
+	public SizeInt(BufferedImage img) {
+		width = img.getWidth();
+		height = img.getHeight();
 	}
 
 	public int getWidth()  { return width; }
@@ -23,7 +30,7 @@ public class SizeInt {
 		if (this == o) return true;
 		if (!(o instanceof SizeInt)) return false;
 
-		SizeInt sizeInt = (SizeInt) o;
+		SizeInt sizeInt = (SizeInt)o;
 
 		return getWidth() == sizeInt.getWidth() &&
 		       getHeight() == sizeInt.getHeight();

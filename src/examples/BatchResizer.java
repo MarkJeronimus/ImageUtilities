@@ -4,6 +4,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
+
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;
 import org.digitalmodular.imageutilities.util.SizeInt;

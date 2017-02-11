@@ -64,8 +64,6 @@ public class DependentWorkerQueue<V> {
 
 	/**
 	 * Adds a worker with no dependencies. This worker will be immediately eligible.
-	 *
-	 * @param worker
 	 */
 	public synchronized void addWorker(Callable<V> worker) {
 		eligibleQueue.add(new DependentCallable(worker));

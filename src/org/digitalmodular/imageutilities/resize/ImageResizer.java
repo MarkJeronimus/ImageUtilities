@@ -27,6 +27,7 @@
 package org.digitalmodular.imageutilities.resize;
 
 import java.awt.image.BufferedImage;
+
 import org.digitalmodular.imageutilities.util.PointDouble;
 import org.digitalmodular.imageutilities.util.SizeDouble;
 import org.digitalmodular.imageutilities.util.SizeInt;
@@ -58,21 +59,27 @@ public interface ImageResizer {
 	}
 
 	SizeInt getOutputSize();
+
 	void setOutputSize(SizeInt outputSize);
 
 	SizeDouble getOutputScale();
+
 	void setOutputScale(SizeDouble outputScale);
 
 	PointDouble getOutputOffset();
+
 	void setOffset(PointDouble outputOffset);
 
 	boolean isIgnoreSRGB();
+
 	void setIgnoreSRGB(boolean ignoreSRGB);
 
 	boolean isDontPreAlpha();
+
 	void setDontPreAlpha(boolean dontPreAlpha);
 
 	EdgeMode getEdgeMode();
+
 	void setEdgeMode(EdgeMode edgeMode);
 
 	/**
@@ -82,8 +89,6 @@ public interface ImageResizer {
 	 * The cancellation policy is to interrupt this thread. This will interrupt all workers and return as soon
 	 * as possible by throwing an {@link InterruptedException}.
 	 *
-	 * @param image
-	 * @return
 	 * @throws InterruptedException when the thread has been interrupted
 	 */
 	BufferedImage resize(BufferedImage image) throws InterruptedException;

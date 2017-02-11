@@ -36,9 +36,9 @@ package org.digitalmodular.imageutilities.resize.filter;
 // Created 2015-08-14
 public class CubicResamplingCurve implements ResamplingCurve {
 	/** Equal to Catmull-Rom */
-	public static final CubicResamplingCurve INSTANCE = new CubicResamplingCurve(-0.5f);
+	public static final CubicResamplingCurve INSTANCE           = new CubicResamplingCurve(-0.5f);
 	public static final CubicResamplingCurve INSTANCE_PHOTOSHOP = new CubicResamplingCurve(-0.75f);
-	public static final CubicResamplingCurve INSTANCE_SHARPER = new CubicResamplingCurve(-1);
+	public static final CubicResamplingCurve INSTANCE_SHARPER   = new CubicResamplingCurve(-1);
 
 	final protected double a;
 
