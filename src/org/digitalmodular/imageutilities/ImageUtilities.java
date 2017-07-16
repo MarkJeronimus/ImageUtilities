@@ -42,6 +42,7 @@ import java.awt.image.WritableRaster;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.logging.Logger;
 import static java.util.Objects.requireNonNull;
 import javax.imageio.IIOImage;
@@ -89,9 +90,9 @@ public enum ImageUtilities {
 
 	public static class AnimationFrame {
 		private final BufferedImage image;
-		private final long          duration;
+		private final int           duration;
 
-		public AnimationFrame(BufferedImage image, long duration) {
+		public AnimationFrame(BufferedImage image, int duration) {
 			this.image = requireNonNull(image);
 			this.duration = duration;
 
@@ -101,7 +102,7 @@ public enum ImageUtilities {
 
 		public BufferedImage getImage() { return image; }
 
-		public long getDuration()       { return duration; }
+		public int getDuration()        { return duration; }
 
 		public SizeInt getSize() {
 			return new SizeInt(image.getWidth(), image.getHeight());
@@ -244,82 +245,89 @@ public enum ImageUtilities {
 				IIOMetadata     metadata = reader.getImageMetadata(i);
 				IIOMetadataNode tree     = (IIOMetadataNode)metadata.getAsTree(metadata.getNativeMetadataFormatName());
 
-				Logger.getGlobal().info(dumpTree(new StringBuilder(256), tree, 0).toString());
-
 				// Default attributes in case they're not found.
 				int     imageLeftPosition    = 0;
 				int     imageTopPosition     = 0;
-				String  disposalMethod       = "doNotDispose"; // other options?
+				String  disposalMethod       = "doNotDispose";
 				boolean transparentColorFlag = false;
 				int     delayTime            = 10;
 
 				// Find all attributes of interest.
-				NodeList children = tree.getChildNodes();
-				for (int j = 0; j < children.getLength(); j++) {
-					Node node = children.item(j);
-					if ("ImageDescriptor".equals(node.getNodeName())) {
-						NamedNodeMap attributes = node.getAttributes();
-						for (int k = 0; k < attributes.getLength(); k++) {
-							Node attribute = attributes.item(k);
-							if ("imageLeftPosition".equals(attribute.getNodeName()))
-								imageLeftPosition = Integer.parseInt(attribute.getNodeValue());
-							if ("imageTopPosition".equals(attribute.getNodeName()))
-								imageTopPosition = Integer.parseInt(attribute.getNodeValue());
-						}
-					} else if ("GraphicControlExtension".equals(node.getNodeName())) {
-						NamedNodeMap attributes = node.getAttributes();
-						for (int k = 0; k < attributes.getLength(); k++) {
-							Node attribute = attributes.item(k);
-							if ("disposalMethod".equals(attribute.getNodeName()))
-								disposalMethod = attribute.getNodeValue();
-							if ("transparentColorFlag".equals(attribute.getNodeName()))
-								transparentColorFlag = Boolean.parseBoolean(attribute.getNodeValue());
-							if ("delayTime".equals(attribute.getNodeName()))
-								delayTime = Integer.parseInt(attribute.getNodeValue());
-						}
+				NodeList imageDescriptor = tree.getElementsByTagName("ImageDescriptor");
+				if (imageDescriptor.getLength() > 0) {
+					NamedNodeMap attributes = imageDescriptor.item(0).getAttributes();
+					for (int k = 0; k < attributes.getLength(); k++) {
+						Node attribute = attributes.item(k);
+						if ("imageLeftPosition".equals(attribute.getNodeName()))
+							imageLeftPosition = Integer.parseInt(attribute.getNodeValue());
+						else if ("imageTopPosition".equals(attribute.getNodeName()))
+							imageTopPosition = Integer.parseInt(attribute.getNodeValue());
 					}
 				}
+
+				NodeList graphicControlExtension = tree.getElementsByTagName("GraphicControlExtension");
+				if (graphicControlExtension.getLength() > 0) {
+					NamedNodeMap attributes = graphicControlExtension.item(0).getAttributes();
+					for (int k = 0; k < attributes.getLength(); k++) {
+						Node attribute = attributes.item(k);
+						if ("disposalMethod".equals(attribute.getNodeName()))
+							disposalMethod = attribute.getNodeValue();
+						else if ("transparentColorFlag".equals(attribute.getNodeName()))
+							transparentColorFlag = Boolean.parseBoolean(attribute.getNodeValue());
+						else if ("delayTime".equals(attribute.getNodeName()))
+							delayTime = Integer.parseInt(attribute.getNodeValue());
+					}
+				}
+
+				NodeList globalColorTable      = tree.getElementsByTagName("GlobalColorTable");
+				NodeList globalScreeDescriptor = tree.getElementsByTagName("LogicalScreenDescriptor");
+				if (globalColorTable.getLength() > 0 || globalScreeDescriptor.getLength() > 0)
+					Thread.yield(); // [breakpoint] TODO implement once images with these tags are found
 
 				// Fix invalid delayTime
 				if (delayTime == 0)
 					delayTime = 10;
 
-				BufferedImage frame = reader.read(i, null);
+				BufferedImage animationFrame = reader.read(i, null);
+
+				if (image == null) {
+					int type = transparentColorFlag ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
+					image = new BufferedImage(animationFrame.getWidth(), animationFrame.getHeight(), type);
+				}
+
+				// Compose the source frame on top of the accumulated frame
+				Graphics g = image.getGraphics();
+				try {
+					g.drawImage(animationFrame, imageLeftPosition, imageTopPosition, null);
+				} finally {
+					g.dispose();
+				}
+
+				// Copy the accumulated image to make an animation frame.
+				animationFrame = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
+
+				g = animationFrame.getGraphics();
+				try {
+					g.drawImage(image, 0, 0, null);
+				} finally {
+					g.dispose();
+				}
+
+				frames[i] = new AnimationFrame(animationFrame, delayTime * 10);
 
 				switch (disposalMethod) {
 					case "doNotDispose":
 						// Leave image as is.
 						break;
+					case "restoreToBackgroundColor":
+						// TODO implement once GlobalColorTable has been decoded
+						Arrays.fill(((DataBufferInt)image.getRaster().getDataBuffer()).getData(), 0x00000000);
+						break;
+					case "restoreToPrevious":
+						// TODO
 					default:
-						throw new UnsupportedOperationException(disposalMethod);
+						throw new UnsupportedOperationException("disposalMethod: " + disposalMethod);
 				}
-
-				if (image == null) {
-					int type = transparentColorFlag ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-					image = new BufferedImage(frame.getWidth(), frame.getHeight(), type);
-				}
-
-				if (image != frame) {
-					// Compose the source frame on top of the accumulated frame
-					Graphics g = image.getGraphics();
-					try {
-						g.drawImage(frame, imageLeftPosition, imageTopPosition, null);
-					} finally {
-						g.dispose();
-					}
-
-					// Copy the accumulated image to make an animation frame.
-					frame = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-
-					g = frame.getGraphics();
-					try {
-						g.drawImage(image, 0, 0, null);
-					} finally {
-						g.dispose();
-					}
-				}
-
-				frames[i] = new AnimationFrame(frame, delayTime * 10);
 			}
 
 			return frames;
