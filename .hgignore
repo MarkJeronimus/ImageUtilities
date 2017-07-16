@@ -1,14 +1,36 @@
+#Rev 3 (2017-02-09T11:30 Mark Jeronimus)
+# Added LibreOffice lock file
+#Rev 2 (2017-01-26T09:30 Mark Jeronimus)
+# Added OS section
+# Removed '\\' path separator (it's canonicalized by hg, so '/' even on Windows)
+
 syntax: regexp
 
+#IntelliJ IDEA
 ^.idea/
-^bin/
+^[^/]*.iml$
 ^out/
-^\.classpath$
-^\.project$
-^.*\.iml
-^.*\.jar
-^.*\.orig
-^.*\.tc
-^.*\.zip
 
+#Eclipse
+^bin/
+
+#NetBeans
+^build/
+^dist/
+^history$
+^nbproject/private/
+^manifest.mf$
+
+#OS
+^(.*/)?thumbs\.db$
+^(.*/)?\.DS_Store$
+
+#LibreOffice
+^(.*/)?\.~lock\.[^/]+#$
+
+#Generic
+[^/]+\.bak$
+
+## Project specific
 ^src/old/
+^testimages/
