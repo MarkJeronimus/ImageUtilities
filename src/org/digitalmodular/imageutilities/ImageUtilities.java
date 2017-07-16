@@ -53,9 +53,6 @@ import javax.imageio.metadata.IIOMetadata;
 import javax.imageio.metadata.IIOMetadataNode;
 import javax.imageio.stream.ImageInputStream;
 import javax.imageio.stream.ImageOutputStream;
-import javax.swing.ImageIcon;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
 import org.w3c.dom.NamedNodeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
@@ -102,35 +99,42 @@ public enum ImageUtilities {
 				throw new IllegalArgumentException("'duration' must be at least 1: " + duration);
 		}
 
-		public BufferedImage getImage()                     { return image; }
+		public BufferedImage getImage() { return image; }
 
-		public AnimationFrame setImage(BufferedImage image) { return new AnimationFrame(image, duration); }
-
-		public long getDuration()                           { return duration; }
-
-		public AnimationFrame setDuration(long duration)    { return new AnimationFrame(image, duration); }
+		public long getDuration()       { return duration; }
 
 		public SizeInt getSize() {
 			return new SizeInt(image.getWidth(), image.getHeight());
 		}
-	}
 
-	public static JComponent createImageComponent(BufferedImage image) {
-		requireNonNull(image);
+		@Override
+		public boolean equals(Object o) {
+			if (this == o)
+				return true;
 
-		return new JLabel(new ImageIcon(image));
-	}
+			if (!(o instanceof AnimationFrame))
+				return false;
 
-	public static JComponent createImageComponent(AnimationFrame... frames) {
-		requireNonNull(frames);
+			AnimationFrame other = (AnimationFrame)o;
 
-		if (frames.length == 0) {
-			throw new IllegalArgumentException("Empty array");
-		} else if (frames.length == 1) {
-			return createImageComponent(frames[0].getImage());
-		} else {
-			return new AnimationPanel(frames);
+			return getDuration() == other.getDuration() &&
+			       getImage().equals(other.getImage());
 		}
+
+		@Override
+		public int hashCode() {
+			int result = getImage().hashCode();
+			result = 31 * result + (int)(getDuration() ^ (getDuration() >>> 32));
+			return result;
+		}
+	}
+
+	public static AnimationFrame[] loadImage(File file) throws IOException {
+		String fileName = file.getName();
+		if (fileName.length() >= 5 && fileName.toUpperCase().endsWith(".GIF"))
+			return loadGIFAsFrames(file);
+		else
+			return new AnimationFrame[]{new AnimationFrame(ImageIO.read(file), 1)};
 	}
 
 	public static Image loadGIF(File file) throws IOException {

@@ -40,6 +40,7 @@ import org.digitalmodular.imageutilities.util.ProgressEvent;
 import org.digitalmodular.imageutilities.util.ProgressListener;
 import org.digitalmodular.imageutilities.util.SizeDouble;
 import org.digitalmodular.imageutilities.util.SizeInt;
+import static org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 
 /**
  * Superclass for all algorithms that can resize an image.
@@ -49,7 +50,6 @@ import org.digitalmodular.imageutilities.util.SizeInt;
  */
 // Created 2015-08-15
 public abstract class AbstractImageResizer<I> implements ImageResizer {
-
 	// User data
 	protected SizeInt     outputSize   = null;
 	protected SizeDouble  outputScale  = null;
@@ -252,4 +252,21 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 */
 	public abstract I makeImageCompatible(Image image);
 
+	@Override
+	public AnimationFrame[] resize(AnimationFrame... animation) throws InterruptedException {
+		AnimationFrame[] resized = new AnimationFrame[animation.length];
+
+		for (int i = 0; i < animation.length; i++) {
+			BufferedImage image = animation[i].getImage();
+
+			image = resize(image);
+
+			resized[i] = new AnimationFrame(image, animation[i].getDuration());
+
+			// TODO find a better way to prevent out-of-heap error
+			System.gc();
+		}
+
+		return resized;
+	}
 }

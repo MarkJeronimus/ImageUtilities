@@ -8,7 +8,6 @@ import javax.imageio.ImageIO;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;
 import org.digitalmodular.imageutilities.resize.filter.Lanczos3ResamplingCurve;
@@ -67,7 +66,7 @@ public class TestAnimationMain extends JFrame {
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setUndecorated(true);
-		setContentPane(ImageUtilities.createImageComponent(frames));
+		setContentPane(new AnimationPanel(frames));
 		setBackground(new Color(0, 0, 0, 0));
 		pack();
 		setLocationRelativeTo(null);

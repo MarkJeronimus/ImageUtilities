@@ -1,7 +1,6 @@
 package examples;
 
 import java.awt.Color;
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import javax.swing.JFrame;
@@ -33,7 +32,7 @@ public class TestAnimatedGIFMain extends JFrame {
 	public TestAnimatedGIFMain() throws IOException, InterruptedException {
 		super(TestAnimatedGIFMain.class.getSimpleName());
 
-		AnimationFrame[] frames = ImageUtilities.loadGIFAsFrames(new File("testimages/Clouds_at_Tarfala.gif"));
+		AnimationFrame[] frames = ImageUtilities.loadImage(new File("testimages/Clouds_at_Tarfala.gif"));
 
 		ImageResamplerShort resampler = new ImageResamplerShort();
 
@@ -45,24 +44,11 @@ public class TestAnimatedGIFMain extends JFrame {
 		resampler.autoSelectFilter(imageSize, newSize);
 		resampler.setOutputSize(newSize);
 
-		for (int i = 0; i < frames.length; i++) {
-
-			BufferedImage image = frames[i].getImage();
-
-			image = resampler.resize(image);
-
-			frames[i] = frames[i].setImage(image);
-
-			// TODO find a better way to prevent out-of-heap error
-			System.gc();
-
-//			AnimationFrame frame = frames[i];
-//			ImageIO.write(frame.getImage(), "PNG", new File("resampled_frame_" + i + ".png"));
-		}
+		frames = resampler.resize(frames);
 
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		setUndecorated(true);
-		setContentPane(ImageUtilities.createImageComponent(frames));
+		setContentPane(new AnimationPanel(frames));
 		setBackground(new Color(0, 0, 0, 0));
 		pack();
 		setLocationRelativeTo(null);

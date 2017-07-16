@@ -31,6 +31,7 @@ import java.awt.image.BufferedImage;
 import org.digitalmodular.imageutilities.util.PointDouble;
 import org.digitalmodular.imageutilities.util.SizeDouble;
 import org.digitalmodular.imageutilities.util.SizeInt;
+import static org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 
 /**
  * @author Mark Jeronimus
@@ -92,4 +93,16 @@ public interface ImageResizer {
 	 * @throws InterruptedException when the thread has been interrupted
 	 */
 	BufferedImage resize(BufferedImage image) throws InterruptedException;
+
+	/**
+	 * Resizes the animation to the dimensions previously set target dimensions. If the frame sizes already equal the
+	 * output size, the frames are themselves are replaced, as is the array containing the frames, but the images
+	 * from the input frames returned in the new frames, unchanged.
+	 * <p>
+	 * The cancellation policy is to interrupt this thread. This will interrupt all workers and return as soon
+	 * as possible by throwing an {@link InterruptedException}.
+	 *
+	 * @throws InterruptedException when the thread has been interrupted
+	 */
+	AnimationFrame[] resize(AnimationFrame... animation) throws InterruptedException;
 }
