@@ -29,10 +29,10 @@ package org.digitalmodular.imageutilities.resize;
 import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
+import static java.util.Objects.requireNonNull;
 
 import org.digitalmodular.imageutilities.util.PerformanceTimer;
 import org.digitalmodular.imageutilities.util.PointDouble;
@@ -146,7 +146,7 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 */
 	@Override
 	public void setIgnoreSRGB(boolean ignoreSRGB) {
-		this.ignoreSRGB = Objects.requireNonNull(ignoreSRGB, "ignoreSRGB can't be null");
+		this.ignoreSRGB = requireNonNull(ignoreSRGB, "ignoreSRGB can't be null");
 	}
 
 	@Override

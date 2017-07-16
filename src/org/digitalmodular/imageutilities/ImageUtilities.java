@@ -97,6 +97,9 @@ public enum ImageUtilities {
 		public AnimationFrame(BufferedImage image, long duration) {
 			this.image = requireNonNull(image);
 			this.duration = duration;
+
+			if (duration < 1)
+				throw new IllegalArgumentException("'duration' must be at least 1: " + duration);
 		}
 
 		public BufferedImage getImage()                     { return image; }
@@ -237,7 +240,7 @@ public enum ImageUtilities {
 				IIOMetadata     metadata = reader.getImageMetadata(i);
 				IIOMetadataNode tree     = (IIOMetadataNode)metadata.getAsTree(metadata.getNativeMetadataFormatName());
 
-				Logger.getGlobal().info(dumpTree(new StringBuilder(), tree, 0).toString());
+				Logger.getGlobal().info(dumpTree(new StringBuilder(256), tree, 0).toString());
 
 				// Default attributes in case they're not found.
 				int     imageLeftPosition    = 0;
@@ -274,7 +277,8 @@ public enum ImageUtilities {
 				}
 
 				// Fix invalid delayTime
-				if (delayTime == 0) delayTime = 10;
+				if (delayTime == 0)
+					delayTime = 10;
 
 				BufferedImage frame = reader.read(i, null);
 
@@ -324,9 +328,11 @@ public enum ImageUtilities {
 		NamedNodeMap attributes = parent.getAttributes();
 		NodeList     children   = parent.getChildNodes();
 
-		for (int i = 0; i < depth; i++) sb.append("  ");
+		for (int i = 0; i < depth; i++)
+			sb.append("  ");
 		sb.append('<').append(nodeName);
-		if (nodeValue != null) sb.append('=').append(nodeValue);
+		if (nodeValue != null)
+			sb.append('=').append(nodeValue);
 
 		for (int i = 0; i < attributes.getLength(); i++) {
 			Node   attribute      = attributes.item(i);
@@ -335,7 +341,8 @@ public enum ImageUtilities {
 			sb.append(' ').append(attributeName).append("=\"").append(attributeValue).append('"');
 		}
 
-		if (children.getLength() == 0) sb.append('/');
+		if (children.getLength() == 0)
+			sb.append('/');
 
 		sb.append(">\n");
 
@@ -345,7 +352,8 @@ public enum ImageUtilities {
 		}
 
 		if (children.getLength() != 0) {
-			for (int i = 0; i < depth; i++) sb.append("  ");
+			for (int i = 0; i < depth; i++)
+				sb.append("  ");
 			sb.append("</").append(nodeName).append(">\n");
 		}
 
@@ -354,20 +362,19 @@ public enum ImageUtilities {
 
 	public static String analyzeImage(Image img) {
 		if (img instanceof BufferedImage) {
-			BufferedImage image       = (BufferedImage)img;
-			int           srcDataType = image.getRaster().getDataBuffer().getDataType();
-			int srcColorType = ImageUtilities
-					.getColorSpaceType(image.getColorModel().getColorSpace());
-			boolean srcIsSRGB               = srcColorType != ColorSpace.CS_LINEAR_RGB;
-			int     numComponents           = image.getColorModel().getColorSpace().getNumComponents();
-			boolean hasAlpha                = image.getColorModel().hasAlpha();
-			boolean srcIsAlphaPremultiplied = image.getColorModel().isAlphaPremultiplied();
+			BufferedImage image                   = (BufferedImage)img;
+			int           srcDataType             = image.getRaster().getDataBuffer().getDataType();
+			int           srcColorType            = getColorSpaceType(image.getColorModel().getColorSpace());
+			int           numComponents           = image.getColorModel().getColorSpace().getNumComponents();
+			boolean       hasAlpha                = image.getColorModel().hasAlpha();
+			boolean       srcIsAlphaPremultiplied = image.getColorModel().isAlphaPremultiplied();
+			boolean       srcIsSRGB               = srcColorType != ColorSpace.CS_LINEAR_RGB;
 			return imageTypeName(image.getType())
 			       + " / " + dataTypeName(srcDataType)
-			       + " / " + (srcIsSRGB ? "sRGB" : "linear")
-			       + " / " + numComponents + " components"
+			       + " / " + numComponents + "ch "
 			       + " / " + (hasAlpha ? "alpha" : "opaque")
-			       + (srcIsAlphaPremultiplied ? " premultiplied" : "");
+			       + (srcIsAlphaPremultiplied ? " premultiplied" : "")
+			       + " / " + (srcIsSRGB ? "sRGB" : "linearRGB");
 		} else {
 			return img.getClass().getSimpleName();
 		}

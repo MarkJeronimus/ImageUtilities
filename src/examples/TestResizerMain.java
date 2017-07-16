@@ -26,7 +26,9 @@ public enum TestResizerMain {
 
 	private static BufferedImage load(String filename) throws IOException {
 		File file = new File(filename);
+
 		Logger.getGlobal().info("Loading: " + file.getCanonicalPath());
+
 		return ImageIO.read(file);
 	}
 
@@ -41,6 +43,7 @@ public enum TestResizerMain {
 		resampler.setOutputSize(ImageUtilities.getScalingSize(new SizeInt(image), new SizeInt(1920, 1080)));
 
 		Logger.getGlobal().info("Resizing");
+
 		BufferedImage resized = resampler.resize(image);
 
 		return resized;
@@ -48,7 +51,9 @@ public enum TestResizerMain {
 
 	private static void save(BufferedImage resized, String filename) throws IOException {
 		File file = new File(filename);
+
 		Logger.getGlobal().info("Writing: " + file.getCanonicalPath());
+
 		ImageIO.write(resized, "PNG", file);
 	}
 }

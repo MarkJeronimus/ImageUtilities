@@ -83,8 +83,8 @@ public interface ImageResizer {
 	void setEdgeMode(EdgeMode edgeMode);
 
 	/**
-	 * Resizes the image to the dimensions previously set by {@link #setOutputSize(SizeInt) setOutputSize()}.
-	 * If image size already equals the output size, it's returned unchanged.
+	 * Resizes the image to the dimensions previously set target dimensions. If the image size already equals the
+	 * output size, it's returned unchanged.
 	 * <p>
 	 * The cancellation policy is to interrupt this thread. This will interrupt all workers and return as soon
 	 * as possible by throwing an {@link InterruptedException}.

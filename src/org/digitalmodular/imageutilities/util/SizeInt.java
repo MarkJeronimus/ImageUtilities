@@ -5,6 +5,7 @@
  */
 package org.digitalmodular.imageutilities.util;
 
+import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 
 public class SizeInt {
@@ -19,6 +20,10 @@ public class SizeInt {
 	public SizeInt(BufferedImage img) {
 		width = img.getWidth();
 		height = img.getHeight();
+	}
+
+	public SizeInt(Dimension dimension) {
+		this(dimension.width, dimension.height);
 	}
 
 	public int getWidth()  { return width; }

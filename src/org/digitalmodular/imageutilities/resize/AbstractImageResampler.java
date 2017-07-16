@@ -36,6 +36,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletionService;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorCompletionService;
@@ -267,7 +268,7 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 				// Wait for next completed worker
 				Future<Void> future = service.take(); // Blocks
 				try {
-					future.get(); // Doesn't block anymore, but required to make it throw exceptions.
+					future.get(); // Doesn't block anymore, but required to obtain the exceptions.
 				} finally {
 					runningWorkers.remove(future);
 				}
@@ -277,6 +278,7 @@ abstract class AbstractImageResampler extends AbstractImageResizer<BufferedImage
 					Callable<Void> worker = workers.takeEligibleworker(); // Blocks
 					runningWorkers.add(service.submit(worker));
 				}
+			} catch (CancellationException ignored) {
 			} catch (InterruptedException ex) {
 				runningWorkers.forEach(future -> future.cancel(true));
 				Thread.currentThread().interrupt();

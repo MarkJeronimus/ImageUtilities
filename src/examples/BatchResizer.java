@@ -2,6 +2,7 @@ package examples;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.imageio.ImageIO;
 
@@ -38,7 +39,8 @@ public class BatchResizer {
 			final SizeInt size = ImageUtilities
 					.getScalingSize(new SizeInt(img.getWidth(), img.getHeight()), targetSize);
 
-			Logger.getGlobal().fine("Size: " + size);
+			if (Logger.getGlobal().isLoggable(Level.FINE))
+				Logger.getGlobal().fine("Size: " + size);
 
 			resampler.setOutputSize(size);
 
