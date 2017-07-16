@@ -248,7 +248,7 @@ public enum ImageUtilities {
 				// Default attributes in case they're not found.
 				int     imageLeftPosition    = 0;
 				int     imageTopPosition     = 0;
-				String  disposalMethod       = "doNotDispose";
+				String  disposalMethod       = null;
 				boolean transparentColorFlag = false;
 				int     delayTime            = 10;
 
@@ -316,6 +316,7 @@ public enum ImageUtilities {
 				frames[i] = new AnimationFrame(animationFrame, delayTime * 10);
 
 				switch (disposalMethod) {
+					case "none":
 					case "doNotDispose":
 						// Leave image as is.
 						break;

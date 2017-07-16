@@ -9,6 +9,11 @@ import javax.swing.SwingUtilities;
 import org.digitalmodular.imageutilities.ImageUtilities;
 import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
 import org.digitalmodular.imageutilities.resize.ImageResamplerShort;
+import org.digitalmodular.imageutilities.resize.filter.CubicResamplingCurve;
+import org.digitalmodular.imageutilities.resize.filter.Lanczos3ResamplingCurve;
+import org.digitalmodular.imageutilities.resize.filter.Lanczos8ResamplingCurve;
+import org.digitalmodular.imageutilities.util.PointDouble;
+import org.digitalmodular.imageutilities.util.SizeDouble;
 import org.digitalmodular.imageutilities.util.SizeInt;
 
 /**
@@ -32,17 +37,22 @@ public class TestAnimatedGIFMain extends JFrame {
 	public TestAnimatedGIFMain() throws IOException, InterruptedException {
 		super(TestAnimatedGIFMain.class.getSimpleName());
 
-		AnimationFrame[] frames = ImageUtilities.loadImage(new File("testimages/Clouds_at_Tarfala.gif"));
+		AnimationFrame[] frames = ImageUtilities.loadGIFAsFrames(new File("testimages/Clouds_at_Tarfala.gif"));
 
 		ImageResamplerShort resampler = new ImageResamplerShort();
+//		resampler.setNumThreads(1);
+//		resampler.setDontPreAlpha(true);
+//		resampler.setIgnoreSRGB(true);
 
-		SizeInt targetSize = new SizeInt(2000, 1500);
+		SizeInt targetSize = new SizeInt(1000, 750);
 		SizeInt imageSize  = frames[0].getSize();
 		SizeInt newSize    = ImageUtilities.getScalingSize(imageSize, targetSize);
 
-//		resampler.setFilter(BoxResamplingCurve.INSTANCE);
-		resampler.autoSelectFilter(imageSize, newSize);
+		resampler.setFilter(Lanczos3ResamplingCurve.INSTANCE);
+//		resampler.autoSelectFilter(imageSize, newSize);
 		resampler.setOutputSize(newSize);
+//		resampler.setOutputScale(new SizeDouble(2, 10));
+//		resampler.setOffset(new PointDouble(0.5, 0.5));
 
 		frames = resampler.resize(frames);
 
@@ -50,7 +60,7 @@ public class TestAnimatedGIFMain extends JFrame {
 		setUndecorated(true);
 		setContentPane(new AnimationPanel(frames));
 		setBackground(new Color(0, 0, 0, 0));
-		pack();
+		setExtendedState(MAXIMIZED_BOTH);
 		setLocationRelativeTo(null);
 		setVisible(true);
 	}
