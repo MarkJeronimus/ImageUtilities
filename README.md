@@ -58,7 +58,7 @@ The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> us
 - Subsampling 'number of samples' now fixed for a given scaling factor. Only in rare cases can one of the weights be 0.
 - Removed ResampleFilters.java and made individual filters public, so filters can be added/extended easily
 - Removed all 'blurry' and 'sharp' filters
-- Renamed filters to their popular poolName (though, without Bi-): Triangle->Linear, Bicubic->Cubic
+- Renamed filters to their popular name (though, without Bi-): Triangle->Linear, Bicubic->Cubic
 - Made filters instantiable and moved static instances to each class for singleton access
 - Progress calculation was wrong (linear H+W != number of operations H+W)
 - Moved filters to own java package
@@ -67,7 +67,7 @@ The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> us
 - Added extensive preprocessing for image type conversions
 - No internal clamping or quantization (using short arrays internally)
 - sRGB-correct resizing (see http://entropymine.com/imageworsener/gamma)
-- Event game iteration not thread-safe
+- Event listener iteration not thread-safe
 - Added output scaling mode without specifying explicit output dimensions
 - Skip resizing step when one or both dimensions stay the same
 - Allow user to both specify output size and scaling factor at the same time, and either can be set back to auto
@@ -83,4 +83,3 @@ The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> us
 - Low-memory version
 - Fast versions (<tt>byte</tt> instead of <tt>short</tt> internal representation)
 - More radius-1 windowed-cosine filters (from signal processing)
-- Fails spectacularly at https://chan.sankakucomplex.com/post/show/828438 (NSFW)
