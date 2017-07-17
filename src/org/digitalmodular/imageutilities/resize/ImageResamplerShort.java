@@ -323,7 +323,10 @@ public class ImageResamplerShort extends AbstractImageResampler {
 			postConvertWorkers.add(new PostConvertWorker(dstBuffer, dstPixels, dstBegin, dstEnd));
 		}
 
-		return Arrays.asList(preConvertWorkers, resampleStep1Workers, resampleStep2Workers, postConvertWorkers);
+		if (resampleStep2Workers.isEmpty())
+			return Arrays.asList(preConvertWorkers, resampleStep1Workers, postConvertWorkers);
+		else
+			return Arrays.asList(preConvertWorkers, resampleStep1Workers, resampleStep2Workers, postConvertWorkers);
 	}
 
 	private DependentWorkerQueue<Void> makeResampleQueue(List<List<Callable<Void>>> workers) {
@@ -402,34 +405,35 @@ public class ImageResamplerShort extends AbstractImageResampler {
 			return null;
 		}
 
-		private void preConvert(byte[] inPixels, short[] outPixels,
-		                        int begin, int end) {
+		private void preConvert(byte[] inPixels, short[] outPixels, int begin, int end) {
 			int q = begin;
-			for (int p = begin; p < end; p++) {
-				outPixels[q++] = (short)(((inPixels[p] & 0xFF) << 7) - 16384);
-			}
+			int p = begin;
+			while (p < end)
+				// All channels are linear
+				outPixels[q++] = (short)(((inPixels[p++] & 0xFF) << 7) - 16384);
 		}
 
 		private void preConvertAlpha(byte[] inPixels, short[] outPixels, int begin, int end) {
 			int q = begin;
+			int p = begin;
 			switch (numBands) {
 				case 2:
-					for (int p = begin; p < end; ) {
+					while (p < end) {
 						byte  a          = inPixels[p++];
 						float alphaScale = (a & 0xFF) * 128 / 255f;
 
-						// Alpha channel is already linear
+						// Alpha channel is always linear
 						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
 						// Pre-multiply by alpha channel
 						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
 					}
 					break;
 				case 4:
-					for (int p = begin; p < end; ) {
+					while (p < end) {
 						byte  a          = inPixels[p++];
 						float alphaScale = (a & 0xFF) * 128 / 255f;
 
-						// Alpha channel is already linear
+						// Alpha channel is always linear
 						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
 						// Pre-multiply by alpha channel
 						outPixels[q++] = (short)((inPixels[p++] & 0xFF) * alphaScale - 16384);
@@ -441,26 +445,27 @@ public class ImageResamplerShort extends AbstractImageResampler {
 
 		private void preConvertSRGB(byte[] inPixels, short[] outPixels, int begin, int end) {
 			int q = begin;
-			for (int p = begin; p < end; ) {
+			for (int p = begin; p < end; )
 				outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
-			}
 		}
 
-		private void preConvertSRGBAlpha(byte[] inPixels, short[] outPixels,
-		                                 int begin, int end) {
+		private void preConvertSRGBAlpha(byte[] inPixels, short[] outPixels, int begin, int end) {
 			int q = begin;
+			int p = begin;
 			switch (numBands) {
 				case 2:
-					for (int p = begin; p < end; ) {
-						// Alpha channel is already linear
+					while (p < end) {
+						// Alpha channel is always linear
 						outPixels[q++] = (short)(((inPixels[p++] & 0xFF) << 7) - 16384);
+						// Linearize other channels
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 					}
 					break;
 				case 4:
-					for (int p = begin; p < end; ) {
-						// Alpha channel is already linear
+					while (p < end) {
+						// Alpha channel is always linear
 						outPixels[q++] = (short)(((inPixels[p++] & 0xFF) << 7) - 16384);
+						// Linearize other channels
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
 						outPixels[q++] = BYTE_SRGB_TO_SHORT[inPixels[p++] & 0xFF];
@@ -470,32 +475,30 @@ public class ImageResamplerShort extends AbstractImageResampler {
 
 		private void preConvertSRGBAlphaPremultiply(byte[] inPixels, short[] outPixels, int begin, int end) {
 			int q = begin;
+			int p = begin;
 			switch (numBands) {
 				case 2:
-					for (int p = begin; p < end; ) {
+					while (p < end) {
 						byte  a     = inPixels[p++];
 						float alpha = (a & 0xFF) / 255f;
 
-						// Alpha channel is already linear
+						// Alpha channel is always linear
 						outPixels[q++] = (short)(((a & 0xFF) << 7) - 16384);
-						// Pre-multiply by alpha channel
+						// Pre-multiply by alpha channel and linearize other channels
 						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha - 16384);
 					}
 					break;
 				case 4:
-					for (int p = begin; p < end; ) {
+					while (p < end) {
 						byte a     = inPixels[p++];
 						int  alpha = a & 0xFF;
 
-						// Alpha channel is already linear
+						// Alpha channel is always linear
 						outPixels[q++] = (short)((alpha << 7) - 16384);
-						// Pre-multiply by alpha channel
-						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                         - 16384);
-						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                         - 16384);
-						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255
-						                         - 16384);
+						// Pre-multiply by alpha channel and linearize other channels
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255 - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255 - 16384);
+						outPixels[q++] = (short)(BYTE_SRGB_TO_SHORT2[inPixels[p++] & 0xFF] * alpha / 255 - 16384);
 					}
 			}
 		}
@@ -753,21 +756,17 @@ public class ImageResamplerShort extends AbstractImageResampler {
 					postConvert(inPixels, outPixels, begin, end);
 				} else {
 					// convert, un-pre-multiply
-					// FIXME
 					postConvertAlpha(inPixels, outPixels, begin, end);
 				}
 			} else {
 				if (!hasAlpha) {
 					// convert, un-linearize
-					// FIXME Overshoot? (untested)
 					postConvertSRGB(inPixels, outPixels, begin, end);
 				} else if (srcIsPreAlpha || dontPreAlpha) {
 					// convert, un-linearize colors only
-					// FIXME
 					postConvertSRGBAlpha(inPixels, outPixels, begin, end);
 				} else {
 					// convert, un-linearize colors only, un-pre-multiply alpha
-					// FIXME
 					postConvertSRGBAlphaUnMultiply(inPixels, outPixels, begin, end);
 				}
 			}
@@ -778,6 +777,7 @@ public class ImageResamplerShort extends AbstractImageResampler {
 			int q = begin;
 			int p = begin;
 			while (p < end) {
+				// All channels are linear
 				short f = inPixels[p++];
 				outPixels[q++] = f <= -16257 ? 0 : f >= 16256 ? -1 : (byte)((f + 16384) >> 7);
 			}
@@ -792,9 +792,11 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
+						// Un-pre-multiply by alpha channel
 						float alphaInv = 32640.0f / (a + 16384);
 						int   r        = (int)((inPixels[p++] + 16384) * alphaInv);
 
+						// Alpha channel is always linear
 						outPixels[q++] = (byte)((a + 16384) >> 7); // Alpha channel
 						outPixels[q++] = r <= 0 ? 0 : r >= 32640 ? -1 : (byte)(r >> 7);
 					}
@@ -804,12 +806,14 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
+						// Un-pre-multiply by alpha channel
 						float alphaInv = 32640.0f / (a + 16384);
 						int   b        = (int)((inPixels[p++] + 16384) * alphaInv);
 						int   g        = (int)((inPixels[p++] + 16384) * alphaInv);
 						int   r        = (int)((inPixels[p++] + 16384) * alphaInv);
 
-						outPixels[q++] = (byte)((a + 16384) >> 7); // Alpha channel
+						// Alpha channel is always linear
+						outPixels[q++] = (byte)((a + 16384) >> 7);
 						outPixels[q++] = b <= 0 ? 0 : b >= 32640 ? -1 : (byte)(b >> 7);
 						outPixels[q++] = g <= 0 ? 0 : g >= 32640 ? -1 : (byte)(g >> 7);
 						outPixels[q++] = r <= 0 ? 0 : r >= 32640 ? -1 : (byte)(r >> 7);
@@ -835,7 +839,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
-						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						// Alpha channel is always linear
+						outPixels[q++] = (byte)((a + 16384) >> 7);
+						// Un-linearize other channels
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 					}
 					break;
@@ -844,7 +850,9 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
-						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						// Alpha channel is always linear
+						outPixels[q++] = (byte)((a + 16384) >> 7);
+						// Un-linearize other channels
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
 						outPixels[q++] = SHORT_TO_BYTE_SRGB[inPixels[p++] & 0xFFFF];
@@ -862,10 +870,13 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
+						// Un-pre-multiply by alpha channel
 						float alphaInv = 32640.0f / (a + 16384);
 						int   r        = (int)((inPixels[p++] + 16384) * alphaInv);
 
-						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						// Alpha channel is always linear
+						outPixels[q++] = (byte)((a + 16384) >> 7);
+						// Un-linearize other channels
 						outPixels[q++] = r <= 0 ? 0 : r >= 32640 ? -1 : SHORT2_TO_BYTE_SRGB[r];
 					}
 					break;
@@ -874,12 +885,15 @@ public class ImageResamplerShort extends AbstractImageResampler {
 						short a = inPixels[p++];
 						a = a <= -16384 ? -16384 : a >= 16256 ? 16256 : a;
 
+						// Un-pre-multiply by alpha channel
 						float alphaInv = 32640.0f / (a + 16384);
 						int   b        = (int)((inPixels[p++] + 16384) * alphaInv);
 						int   g        = (int)((inPixels[p++] + 16384) * alphaInv);
 						int   r        = (int)((inPixels[p++] + 16384) * alphaInv);
 
-						outPixels[q++] = (byte)((a + 16384) >> 7); // Don't sRGB the alpha channel
+						// Alpha channel is always linear
+						outPixels[q++] = (byte)((a + 16384) >> 7);
+						// Un-linearize other channels
 						outPixels[q++] = b <= 0 ? 0 : b >= 32640 ? -1 : SHORT2_TO_BYTE_SRGB[b];
 						outPixels[q++] = g <= 0 ? 0 : g >= 32640 ? -1 : SHORT2_TO_BYTE_SRGB[g];
 						outPixels[q++] = r <= 0 ? 0 : r >= 32640 ? -1 : SHORT2_TO_BYTE_SRGB[r];

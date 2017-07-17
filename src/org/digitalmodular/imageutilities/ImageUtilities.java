@@ -134,8 +134,10 @@ public enum ImageUtilities {
 		String fileName = file.getName();
 		if (fileName.length() >= 5 && fileName.toUpperCase().endsWith(".GIF"))
 			return loadGIFAsFrames(file);
-		else
-			return new AnimationFrame[]{new AnimationFrame(ImageIO.read(file), 1)};
+		else {
+			BufferedImage image = ImageIO.read(file);
+			return image == null ? null : new AnimationFrame[]{new AnimationFrame(image, 1)};
+		}
 	}
 
 	public static Image loadGIF(File file) throws IOException {

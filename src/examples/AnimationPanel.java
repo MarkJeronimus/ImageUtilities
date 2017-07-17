@@ -113,6 +113,10 @@ public class AnimationPanel extends JPanel implements MouseListener, MouseMotion
 			g.drawImage(image, 0, 0, null);
 			g.setColor(Color.GRAY);
 			g.drawString(image.getWidth() + "×" + image.getHeight() + ", frame:" + frame, 0, -3);
+
+			if (zoomFactor > 1)
+				((Graphics2D)g).translate(0.5, 0.5);
+
 			g.drawRect(-1, -1, size.getWidth() + 1, size.getHeight() + 1);
 		} finally {
 			frame = nextFrame;
