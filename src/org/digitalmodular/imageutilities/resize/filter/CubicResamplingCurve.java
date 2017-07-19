@@ -27,53 +27,51 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Cubic (usually incorrectly called Bicubic) resampling filter. Radius = 2. Under/overshoot present. Using the
- * default constructor generates a cardinal cubic spline with {@code a = -0.5}. For more details, see
+ * Cubic (usually incorrectly called Bicubic) resampling filter. Radius = 2. Overshoot present. Using the
+ * default constructor generates a cardinal cubic spline with sharpness{@code -0.5} (in literature often quoted as
+ * the "a" parameter. This is a 1-parameter version because it fixes x-axis intercepts at {@code -1} and {@code +1}, to
+ * prevent artificial blurring or sharpening. For more details, see
  * <a href="http://entropymine.com/imageworsener/bicubic">entropymine.com/imageworsener/bicubic</a>.
  *
  * @author Mark Jeronimus
  */
 // Created 2015-08-14
 public class CubicResamplingCurve implements ResamplingCurve {
-	/** Equal to Catmull-Rom */
+	/** Sharpness is {@code -0.5f}. Otherwise known as Catmull-Rom. */
 	public static final CubicResamplingCurve INSTANCE           = new CubicResamplingCurve(-0.5f);
+	/** Sharpness is {@code -0.75}, precisely in between {@link #INSTANCE} and {@link #INSTANCE_SHARPER}. */
 	public static final CubicResamplingCurve INSTANCE_PHOTOSHOP = new CubicResamplingCurve(-0.75f);
-	public static final CubicResamplingCurve INSTANCE_SHARPER   = new CubicResamplingCurve(-1);
+	/** Sharpness is {@code -1.0f}. */
+	public static final CubicResamplingCurve INSTANCE_SHARPER   = new CubicResamplingCurve(-1.0f);
 
-	final protected double a;
+	private final double sharpness;
 
 	public CubicResamplingCurve() {
-		a = -0.5;
+		sharpness = -0.5;
 	}
 
-	public CubicResamplingCurve(double a) {
-		this.a = a;
-	}
-
-	@Override
-	public double getRadius() {
-		return 2.0f;
+	public CubicResamplingCurve(double sharpness) {
+		this.sharpness = sharpness;
 	}
 
 	@Override
-	public String getName() {
-		return "Cubic";
-	}
+	public String getName() { return "Cubic"; }
 
 	@Override
-	public final double apply(double x) {
-		if (x < 0) {
-			x = -x;
-		}
-		if (x >= 2) {
+	public double getRadius() { return 2.0f; }
+
+	@Override
+	public final double apply(double value) {
+		if (value < 0)
+			value = -value;
+
+		if (value >= 2)
 			return 0;
-		}
 
-		double xx = x * x;
-		if (x < 1) {
-			return (a + 2) * xx * x - (a + 3) * xx + 1;
-		} else {
-			return a * xx * x - 5 * a * xx + 8 * a * x - 4 * a;
-		}
+		double xx = value * value;
+		if (value < 1)
+			return (sharpness + 2) * xx * value - (sharpness + 3) * xx + 1;
+		else
+			return sharpness * xx * value - 5 * sharpness * xx + 8 * sharpness * value - 4 * sharpness;
 	}
 }

@@ -3,7 +3,7 @@
  * with a library class (e.g. Point2D from javafx), or keep
  * using it as-is.
  */
-package org.digitalmodular.imageutilities.util;
+package org.digitalmodular.imageutilities;
 
 public class PointDouble {
 	private final double x;

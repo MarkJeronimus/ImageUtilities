@@ -24,7 +24,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.digitalmodular.imageutilities.util;
+package org.digitalmodular.imageutilities.internal;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,16 +33,18 @@ import java.util.List;
  * @author Mark Jeronimus
  */
 // Created 2015-09-08
+@SuppressWarnings("UseOfSystemOutOrSystemErr")
 public class PerformanceTimer {
-	private String       format       = "%7.2f";
-	private List<Long>   durations    = new ArrayList<>();
-	private List<String> descriptions = new ArrayList<>();
+	private static final String FORMAT = "%7.2f";
+
+	private final List<Long>   durations    = new ArrayList<>(32);
+	private final List<String> descriptions = new ArrayList<>(32);
 
 	private static boolean printingEnabled = false;
 
-	private long startTime;
-	private long lastTime;
-	private int  longestDescription;
+	private long startTime                = 0;
+	private long lastTime                 = 0;
+	private int  longestDescriptionLength = 0;
 
 	public static boolean isPrintingEnabled() {
 		return printingEnabled;
@@ -60,25 +62,26 @@ public class PerformanceTimer {
 	public void start() {
 		startTime = System.nanoTime();
 		lastTime = startTime;
-		longestDescription = 0;
+		longestDescriptionLength = 0;
 	}
 
 	public void record(String description) {
 		long time = System.nanoTime();
 		durations.add(time - lastTime);
 		descriptions.add(description);
-		longestDescription = Math.max(longestDescription, description.length());
+		longestDescriptionLength = Math.max(longestDescriptionLength, description.length());
 		lastTime = time;
 	}
 
 	public void printResults() {
-		if (!printingEnabled) return;
+		if (!printingEnabled)
+			return;
 
-		String formatString = "%-" + longestDescription + "s " + format + "\n";
+		String formatString = "%-" + longestDescriptionLength + "s " + FORMAT + '\n';
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = durations.get(i);
 			String description = descriptions.get(i);
-			System.out.printf(formatString, description, duration / 1e6);
+			System.out.printf(formatString, description, duration / 1.0e6);
 		}
 	}
 
@@ -86,36 +89,39 @@ public class PerformanceTimer {
 	 * Prints the durations of each record and the amount of work performed per second in each step.
 	 */
 	public void printResults(double workload) {
-		if (!printingEnabled) return;
+		if (!printingEnabled)
+			return;
 
-		String formatString = "%-" + longestDescription + "s " + format + " (%,9.2f)\n";
+		String formatString = "%-" + longestDescriptionLength + "s " + FORMAT + " (%,9.2f)\n";
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = durations.get(i);
 			String description = descriptions.get(i);
-			System.out.printf(formatString, description, duration / 1e6, workload * 1e3 / duration);
+			System.out.printf(formatString, description, duration / 1.0e6, workload * 1.0e3 / duration);
 		}
 	}
 
 	public void printTotal() {
-		if (!printingEnabled) return;
+		if (!printingEnabled)
+			return;
 
-		String formatString = "%-" + longestDescription + "s " + format + "\n";
+		String formatString = "%-" + longestDescriptionLength + "s " + FORMAT + '\n';
 		long   duration     = lastTime - startTime;
 		String description  = "Total";
-		System.out.printf(formatString, description, duration / 1e6);
+		System.out.printf(formatString, description, duration / 1.0e6);
 	}
 
 	/**
 	 * Prints the total duration and the amount of work performed per second.
 	 */
 	public void printTotal(long workload) {
-		if (!printingEnabled) return;
+		if (!printingEnabled)
+			return;
 
-		String formatString = "%-" + longestDescription + "s " + format + " (%,9.2f)\n";
+		String formatString = "%-" + longestDescriptionLength + "s " + FORMAT + " (%,9.2f)\n";
 		for (int i = 0; i < durations.size(); i++) {
 			long   duration    = lastTime - startTime;
 			String description = "Total";
-			System.out.printf(formatString, description, duration / 1e6, workload * 1e3 / duration);
+			System.out.printf(formatString, description, duration / 1.0e6, workload * 1.0e3 / duration);
 		}
 	}
 }

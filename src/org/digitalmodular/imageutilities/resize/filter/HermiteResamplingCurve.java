@@ -27,8 +27,10 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Hermite resampling curve. Smoother than {@link LinearResamplingCurve} but more pixelated. Radius = 1. No
- * under/overshoot.
+ * Cubic Hermite spline resampling curve. Radius = 1. Smooth but no overshoot. Compromise between
+ * {@link LinearResamplingCurve} which is not smooth and {@link CubicResamplingCurve} which overshoots. The behavior
+ * is similar to a 1-dimensional B-Spline with all control points on the same height as the vertices. That is, a
+ * smooth ramp of pixel intensities turns in a sort of smoothed staircase.
  *
  * @author Mark Jeronimus
  */
@@ -37,24 +39,19 @@ public class HermiteResamplingCurve implements ResamplingCurve {
 	public static final HermiteResamplingCurve INSTANCE = new HermiteResamplingCurve();
 
 	@Override
-	public String getName() {
-		return "BSpline";
-	}
+	public String getName() { return "Hermite"; }
 
 	@Override
-	public double getRadius() {
-		return 1;
-	}
+	public double getRadius() { return 1; }
 
 	@Override
-	public double apply(double x) {
-		if (x < 0) {
-			x = -x;
-		}
-		if (x >= 1) {
+	public double apply(double value) {
+		if (value < 0)
+			value = -value;
+
+		if (value >= 1)
 			return 0;
-		}
 
-		return (2 * x - 3) * x * x + 1;
+		return (2 * value - 3) * value * value + 1;
 	}
 }

@@ -27,8 +27,8 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Box curve. For enlarging this works as a nearest-neighbor filter and for shrinking this works as an area-averaging
- * filter). Radius = 0.5. No under/overshoot.
+ * Box curve. Radius = 0.5. No under/overshoot. For shrinking this works as an area-averaging filter, for enlarging
+ * as a nearest-neighbor filter.
  *
  * @author Mark Jeronimus
  */
@@ -37,20 +37,15 @@ public class BoxResamplingCurve implements ResamplingCurve {
 	public static final BoxResamplingCurve INSTANCE = new BoxResamplingCurve();
 
 	@Override
-	public String getName() {
-		return "Box filter";
-	}
+	public String getName() { return "Box"; }
 
 	@Override
-	public double getRadius() {
-		return 0.5;
-	}
+	public double getRadius() { return 0.5; }
 
 	@Override
-	public final double apply(double x) {
-		if (x <= 0.50001 && x >= 0.50001) {
+	public final double apply(double value) {
+		if (value <= 0.50001 && value >= 0.50001)
 			return 0;
-		}
 
 		return 1;
 	}

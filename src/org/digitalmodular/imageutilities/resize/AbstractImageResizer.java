@@ -28,19 +28,19 @@ package org.digitalmodular.imageutilities.resize;
 
 import java.awt.Image;
 import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import static java.lang.Double.isInfinite;
 import static java.lang.Double.isNaN;
 import static java.util.Objects.requireNonNull;
 
-import org.digitalmodular.imageutilities.util.PerformanceTimer;
-import org.digitalmodular.imageutilities.util.PointDouble;
-import org.digitalmodular.imageutilities.util.ProgressEvent;
-import org.digitalmodular.imageutilities.util.ProgressListener;
-import org.digitalmodular.imageutilities.util.SizeDouble;
-import org.digitalmodular.imageutilities.util.SizeInt;
-import static org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
+import org.digitalmodular.imageutilities.AnimationFrame;
+import org.digitalmodular.imageutilities.PointDouble;
+import org.digitalmodular.imageutilities.ProgressEvent;
+import org.digitalmodular.imageutilities.ProgressListener;
+import org.digitalmodular.imageutilities.SizeDouble;
+import org.digitalmodular.imageutilities.SizeInt;
 
 /**
  * Superclass for all algorithms that can resize an image.
@@ -49,34 +49,32 @@ import static org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
  * @author Mark Jeronimus
  */
 // Created 2015-08-15
+@SuppressWarnings({"OverloadedVarargsMethod", "ProtectedField"})
 public abstract class AbstractImageResizer<I> implements ImageResizer {
 	// User data
-	protected SizeInt     outputSize   = null;
-	protected SizeDouble  outputScale  = null;
-	protected PointDouble outputOffset = null;
+	protected SizeInt     outputSize        = null;
+	protected SizeDouble  outputScaleFactor = null;
+	protected PointDouble outputOffset      = null;
 
 	protected boolean  ignoreSRGB   = false;
 	protected boolean  dontPreAlpha = false;
 	protected EdgeMode edgeMode     = EdgeMode.CLAMP;
 
-	// Run-time data
-	protected PerformanceTimer timer = new PerformanceTimer();
-
 	protected final List<ProgressListener> listeners = new CopyOnWriteArrayList<>();
 
 	// Working data
-	protected int     srcWidth;
-	protected int     srcHeight;
-	protected int     dstWidth;
-	protected int     dstHeight;
-	protected double  scaleWidth;
-	protected double  scaleHeight;
-	protected double  offsetX;
-	protected double  offsetY;
-	protected int     numBands;
-	protected boolean hasAlpha;
-	protected boolean srcIsSRGB;
-	protected boolean srcIsPreAlpha;
+	protected int     srcWidth          = 0;
+	protected int     srcHeight         = 0;
+	protected int     dstWidth          = 0;
+	protected int     dstHeight         = 0;
+	protected double  widthScaleFactor  = 0;
+	protected double  heightScaleFactor = 0;
+	protected double  offsetX           = 0;
+	protected double  offsetY           = 0;
+	protected int     numChannels       = 0;
+	protected boolean hasAlpha          = false;
+	protected boolean srcIsSRGB         = false;
+	protected boolean srcIsPreAlpha     = false;
 
 	@Override
 	public SizeInt getOutputSize() {
@@ -97,28 +95,24 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	}
 
 	@Override
-	public SizeDouble getOutputScale() {
-		return outputScale;
-	}
+	public SizeDouble getOutputScaleFactor() { return outputScaleFactor; }
 
 	@Override
-	public void setOutputScale(SizeDouble outputScale) {
-		if (outputScale != null) {
-			if (isNaN(outputScale.getWidth()) || isInfinite(outputScale.getWidth())
-			    || isNaN(outputScale.getHeight()) || isInfinite(outputScale.getHeight())) {
-				throw new IllegalArgumentException("outputScale is degenerate: " + outputScale);
-			} else if (outputScale.getWidth() <= 0 || outputScale.getHeight() <= 0) {
-				throw new IllegalArgumentException("Negative values won't flip the image: " + outputScale);
+	public void setOutputScaleFactor(SizeDouble outputScaleFactor) {
+		if (outputScaleFactor != null) {
+			if (isNaN(outputScaleFactor.getWidth()) || isInfinite(outputScaleFactor.getWidth())
+			    || isNaN(outputScaleFactor.getHeight()) || isInfinite(outputScaleFactor.getHeight())) {
+				throw new IllegalArgumentException("outputScaleFactor is degenerate: " + outputScaleFactor);
+			} else if (outputScaleFactor.getWidth() <= 0 || outputScaleFactor.getHeight() <= 0) {
+				throw new IllegalArgumentException("Negative values won't flip the image: " + outputScaleFactor);
 			}
 		}
 
-		this.outputScale = outputScale;
+		this.outputScaleFactor = outputScaleFactor;
 	}
 
 	@Override
-	public PointDouble getOutputOffset() {
-		return outputOffset;
-	}
+	public PointDouble getOutputOffset() { return outputOffset; }
 
 	@Override
 	public void setOffset(PointDouble outputOffset) {
@@ -133,9 +127,7 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	}
 
 	@Override
-	public boolean isIgnoreSRGB() {
-		return ignoreSRGB;
-	}
+	public boolean isIgnoreSRGB() { return ignoreSRGB; }
 
 	/**
 	 * Set to true when you don't want the algorithm to linearize the image beforehand and restore the sRGB
@@ -150,28 +142,22 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	}
 
 	@Override
-	public boolean isDontPreAlpha() {
-		return this.dontPreAlpha;
-	}
+	public boolean isDontPreAlpha() { return dontPreAlpha; }
 
 	/**
-	 * Set whether to pre-multiply and un-multiply the alpha values before and after resizing. Default is {@code
+	 * Set whether to premultiply and un-multiply the alpha values before and after resizing. Default is {@code
 	 * false}.
 	 * <p>
-	 * Set to true if you don't want the algorithm to pre-multiply alpha beforehand and un-multiply afterwards.
+	 * Set to true if you don't want the algorithm to premultiply alpha beforehand and un-multiply afterwards.
 	 * If the image to resize already has it's alpha pre-multiplied, then this flag has no effect.
 	 * <p>
 	 * Ignoring the alpha channel might speed up the resizing algorithm at the cost of accuracy.
 	 */
 	@Override
-	public void setDontPreAlpha(boolean dontPreAlpha) {
-		this.dontPreAlpha = dontPreAlpha;
-	}
+	public void setDontPreAlpha(boolean dontPreAlpha) { this.dontPreAlpha = dontPreAlpha; }
 
 	@Override
-	public EdgeMode getEdgeMode() {
-		return this.edgeMode;
-	}
+	public EdgeMode getEdgeMode() { return edgeMode; }
 
 	/**
 	 * Set how the pixels beyond the edge are read. Default is {@link EdgeMode#CLAMP}.
@@ -181,10 +167,10 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 		this.edgeMode = edgeMode;
 	}
 
-	protected void calculateDstSizeAndScale(BufferedImage image) {
-		if (outputSize == null && outputScale == null) {
+	protected void calculateDstSizeAndScale(RenderedImage image) {
+		if (outputSize == null && outputScaleFactor == null) {
 			throw new IllegalStateException(
-					"Either or both of outputSize and outputScale need to be set first.");
+					"Either or both of outputSize and outputScaleFactor need to be set first.");
 		}
 
 		srcWidth = image.getWidth();
@@ -194,16 +180,16 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 			dstWidth = outputSize.getWidth();
 			dstHeight = outputSize.getHeight();
 		} else {
-			dstWidth = Math.max(1, (int)Math.ceil(srcWidth * outputScale.getWidth()));
-			dstHeight = Math.max(1, (int)Math.ceil(srcHeight * outputScale.getHeight()));
+			dstWidth = Math.max(1, (int)Math.ceil(srcWidth * outputScaleFactor.getWidth()));
+			dstHeight = Math.max(1, (int)Math.ceil(srcHeight * outputScaleFactor.getHeight()));
 		}
 
-		if (outputScale != null) {
-			scaleWidth = outputScale.getWidth();
-			scaleHeight = outputScale.getHeight();
+		if (outputScaleFactor != null) {
+			widthScaleFactor = outputScaleFactor.getWidth();
+			heightScaleFactor = outputScaleFactor.getHeight();
 		} else {
-			scaleWidth = dstWidth / (double)srcWidth;
-			scaleHeight = dstHeight / (double)srcHeight;
+			widthScaleFactor = dstWidth / (double)srcWidth;
+			heightScaleFactor = dstHeight / (double)srcHeight;
 		}
 
 		if (outputOffset != null) {
@@ -215,20 +201,20 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 		}
 	}
 
-	public final void addProgressListener(final ProgressListener progressListener) {
+	public final void addProgressListener(ProgressListener progressListener) {
 		listeners.add(progressListener);
 	}
 
-	public final void removeProgressListener(final ProgressListener progressListener) {
+	public final void removeProgressListener(ProgressListener progressListener) {
 		listeners.remove(progressListener);
 	}
 
-	protected void fireProgressUpdated(final ProgressEvent e) {
+	protected void fireProgressUpdated(ProgressEvent e) {
 		for (ProgressListener progressListener : listeners)
 			progressListener.progressUpdated(e);
 	}
 
-	protected void fireProgressCompleted(final ProgressEvent e) {
+	protected void fireProgressCompleted(ProgressEvent e) {
 		for (ProgressListener progressListener : listeners)
 			progressListener.progressCompleted(e);
 	}
@@ -248,7 +234,7 @@ public abstract class AbstractImageResizer<I> implements ImageResizer {
 	 * Returns an image that is compatible with this resizing algorithm (for a description, see
 	 * {@link #imageIsCompatible(Image) imageIsCompatible()}).
 	 * <p>
-	 * If the image is already compatible, it's returned unchanged (though type-casted).
+	 * If the image is already compatible, then it's returned unchanged (though type-casted).
 	 */
 	public abstract I makeImageCompatible(Image image);
 

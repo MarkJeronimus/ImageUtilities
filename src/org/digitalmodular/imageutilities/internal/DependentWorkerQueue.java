@@ -24,13 +24,13 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package org.digitalmodular.imageutilities.util;
+package org.digitalmodular.imageutilities.internal;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Queue;
 import java.util.Set;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Callable;
@@ -53,9 +53,8 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 // Created 2015-08-28
 public class DependentWorkerQueue<V> {
-
-	Queue<List<Callable<V>>>         dependencyQueue = new LinkedList<>();
-	BlockingQueue<DependentCallable> eligibleQueue   = new LinkedBlockingQueue<>();
+	private final Collection<List<Callable<V>>>    dependencyQueue = new LinkedList<>();
+	private final BlockingQueue<DependentCallable> eligibleQueue   = new LinkedBlockingQueue<>();
 
 	public synchronized void clear() {
 		dependencyQueue.clear();
@@ -75,8 +74,8 @@ public class DependentWorkerQueue<V> {
 	 * @param worker       the worker
 	 * @param dependencies workers that must all finish before the worker becomes eligible
 	 */
-	public synchronized void addWorker(Callable<V> worker, List<Callable<V>> dependencies) {
-		List<Callable<V>> dependencyList = new ArrayList<>();
+	public synchronized void addWorker(Callable<V> worker, Collection<Callable<V>> dependencies) {
+		List<Callable<V>> dependencyList = new ArrayList<>(64);
 		dependencyList.add(worker);
 		dependencyList.addAll(dependencies);
 		dependencyQueue.add(dependencyList);
@@ -86,7 +85,7 @@ public class DependentWorkerQueue<V> {
 		return !eligibleQueue.isEmpty();
 	}
 
-	public Callable<V> takeEligibleworker() throws InterruptedException {
+	public Callable<V> takeEligibleWorker() throws InterruptedException {
 		return eligibleQueue.take();
 	}
 
@@ -105,27 +104,26 @@ public class DependentWorkerQueue<V> {
 	 * @param dependency the worker that finished, and which other workers might be waiting for.
 	 */
 	synchronized void releaseBlockedWorkers(Callable<V> dependency) {
-		Iterator<List<Callable<V>>> iter = dependencyQueue.iterator();
-		while (iter.hasNext()) {
+		Iterator<List<Callable<V>>> iterator = dependencyQueue.iterator();
+		while (iterator.hasNext()) {
 			// Get the worker and it's dependencies
-			List<Callable<V>> worker = iter.next();
+			List<Callable<V>> worker = iterator.next();
 
 			// Remove our dependency
 			worker.remove(dependency);
 
 			// Transfer worker to eligible queue if it has no dependencies left
 			if (worker.size() == 1) {
-				iter.remove();
+				iterator.remove();
 				eligibleQueue.offer(new DependentCallable(worker.get(0)));
 			}
 		}
 	}
 
-	private class DependentCallable implements Callable<V> {
-
+	private final class DependentCallable implements Callable<V> {
 		private final Callable<V> worker;
 
-		public DependentCallable(Callable<V> worker) {
+		private DependentCallable(Callable<V> worker) {
 			this.worker = worker;
 		}
 

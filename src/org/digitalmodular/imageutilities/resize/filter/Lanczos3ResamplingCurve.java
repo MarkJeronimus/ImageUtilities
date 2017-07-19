@@ -27,7 +27,9 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Lanczos filter with 3 lobes. Radius = 3. Under/overshoot present.
+ * Lanczos filter with 3 lobes. Radius = 3. Because of the more than average overshoot, this is only intended for
+ * smooth and natural images, like raw photos. It will ruin any pixelated images (e.g. screenshots) and may degrade
+ * scaled-down (i.e. very sharp) photos.
  *
  * @author Mark Jeronimus
  */
@@ -36,25 +38,20 @@ public class Lanczos3ResamplingCurve implements ResamplingCurve {
 	public static final Lanczos3ResamplingCurve INSTANCE = new Lanczos3ResamplingCurve();
 
 	@Override
-	public String getName() {
-		return "Lanczos3";
-	}
+	public String getName() { return "Lanczos3"; }
 
 	@Override
-	public double getRadius() {
-		return 3;
-	}
+	public double getRadius() { return 3; }
 
 	@Override
 	public double apply(double value) {
-		if (value < 0) {
+		if (value < 0)
 			value = -value;
-		}
-		if (value >= 3) {
+
+		if (value >= 3)
 			return 0;
-		} else if (value == 0) {
+		else if (value == 0)
 			return 1;
-		}
 
 		value *= Math.PI;
 		return sinc(value) * sinc(value / 3);

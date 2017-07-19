@@ -30,7 +30,9 @@ syntax: regexp
 
 #Generic
 [^/]+\.bak$
+^(.*/)?\pspbrwse.jbf$
 
 ## Project specific
-^src/old/
-^testimages/
+^[^/]*.(png|gif|jpg)$
+^testimages/out/
+

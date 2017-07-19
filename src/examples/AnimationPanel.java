@@ -23,8 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
-import org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
-import org.digitalmodular.imageutilities.util.SizeInt;
+import org.digitalmodular.imageutilities.AnimationFrame;
+import org.digitalmodular.imageutilities.SizeInt;
 
 /**
  * Users are encouraged to create their own animation panel instead of using this. It's included only as a reference
@@ -127,20 +127,13 @@ public class AnimationPanel extends JPanel implements MouseListener, MouseMotion
 		int width  = getWidth();
 		int height = getHeight();
 
-		SizeInt targetSize  = new SizeInt(width, height);
 		SizeInt displaySize = zoom(imageSize);
 
 		float sx = (float)displaySize.getWidth() / imageSize.getWidth();
 		float sy = (float)displaySize.getHeight() / imageSize.getHeight();
 
-		int tx = width / 2;
-		int ty = height / 2;
-
-		tx -= offsetX;
-		ty -= offsetY;
-
-		tx -= displaySize.getWidth() / 2;
-		ty -= displaySize.getHeight() / 2;
+		int tx = width / 2 - offsetX - displaySize.getWidth() / 2;
+		int ty = height / 2 - offsetY - displaySize.getHeight() / 2;
 
 		return new AffineTransform(sx, 0, 0, sy, tx, ty);
 	}

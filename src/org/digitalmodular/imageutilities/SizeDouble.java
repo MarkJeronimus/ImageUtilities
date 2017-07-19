@@ -3,7 +3,7 @@
  * with a library class (e.g. Double2D from javafx), or keep
  * using it as-is.
  */
-package org.digitalmodular.imageutilities.util;
+package org.digitalmodular.imageutilities;
 
 public class SizeDouble {
 	private final double width;

@@ -26,10 +26,8 @@
  */
 package org.digitalmodular.imageutilities;
 
-import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Image;
-import java.awt.Toolkit;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
 import java.awt.image.BufferedImage;
@@ -39,360 +37,48 @@ import java.awt.image.DataBuffer;
 import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
 import java.awt.image.WritableRaster;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.logging.Logger;
-import static java.util.Objects.requireNonNull;
-import javax.imageio.IIOImage;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.ImageTypeSpecifier;
-import javax.imageio.ImageWriter;
-import javax.imageio.metadata.IIOMetadata;
-import javax.imageio.metadata.IIOMetadataNode;
-import javax.imageio.stream.ImageInputStream;
-import javax.imageio.stream.ImageOutputStream;
-import org.w3c.dom.NamedNodeMap;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-
-import org.digitalmodular.imageutilities.util.SizeInt;
 
 /**
  * @author Mark Jeronimus
  */
 // Created 2009-04-28
 // Changed 2015-08-15 added functions for AbstractImageResizer
-// Changed 2015-09-08 added functions animations
+// Changed 2015-09-08 added functions for animations
+// Changed 2017-07-18 Extracted GIF loading to GIFLoader, and pulled up AnimationFrame
 public enum ImageUtilities {
 	;
 
-	public enum ScalingTarget {
-		STRETCH,
-		INSIDE,
-		OUTSIDE,
-		WIDTH_TOUCH,
-		HEIGHT_TOUCH,
-		SAME_DIAGONAL,
-		SAME_CIRCUMFERENCE,
-		SAME_AREA
-	}
-
-	public enum ScalingCondition {
-		ALWAYS,
-		NEVER,
-		ONLY_IF_LARGER,
-		ONLY_IF_SMALLER,
-		ONLY_INTEGER_ZOOM
-	}
-
-	public static class AnimationFrame {
-		private final BufferedImage image;
-		private final int           duration;
-
-		public AnimationFrame(BufferedImage image, int duration) {
-			this.image = requireNonNull(image);
-			this.duration = duration;
-
-			if (duration < 1)
-				throw new IllegalArgumentException("'duration' must be at least 1: " + duration);
-		}
-
-		public BufferedImage getImage() { return image; }
-
-		public int getDuration()        { return duration; }
-
-		public SizeInt getSize() {
-			return new SizeInt(image.getWidth(), image.getHeight());
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o)
-				return true;
-
-			if (!(o instanceof AnimationFrame))
-				return false;
-
-			AnimationFrame other = (AnimationFrame)o;
-
-			return getDuration() == other.getDuration() &&
-			       getImage().equals(other.getImage());
-		}
-
-		@Override
-		public int hashCode() {
-			int result = getImage().hashCode();
-			result = 31 * result + (int)(getDuration() ^ (getDuration() >>> 32));
-			return result;
-		}
-	}
-
-	public static AnimationFrame[] loadImage(File file) throws IOException {
+	public static AnimationFrame[] readImage(File file) throws IOException {
 		String fileName = file.getName();
 		if (fileName.length() >= 5 && fileName.toUpperCase().endsWith(".GIF"))
-			return loadGIFAsFrames(file);
+			return GIFLoader.read(file);
 		else {
 			BufferedImage image = ImageIO.read(file);
 			return image == null ? null : new AnimationFrame[]{new AnimationFrame(image, 1)};
 		}
 	}
 
-	public static Image loadGIF(File file) throws IOException {
-		try (ImageInputStream inputStream = ImageIO.createImageInputStream(file)) {
-			// Prepare a decoder
-			ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
-			reader.setInput(inputStream);
-
-			int numImages = reader.getNumImages(true);
-
-			// Find out if GIF is bugged
-			boolean foundBug = false;
-			findBug:
-			for (int i = 0; i < numImages; i++) {
-				IIOMetadata metadata = reader.getImageMetadata(i);
-				Node        tree     = metadata.getAsTree(metadata.getNativeMetadataFormatName());
-
-				// Find delay, which is at: <root><GraphicControlExtension delayTime=##></root>
-				NodeList children = tree.getChildNodes();
-				for (int j = 0; j < children.getLength(); j++) {
-					Node node = children.item(j);
-					if ("GraphicControlExtension".equals(node.getNodeName())) {
-						NamedNodeMap attributes = node.getAttributes();
-						for (int k = 0; k < attributes.getLength(); k++) {
-							Node attribute = attributes.item(k);
-							if ("delayTime".equals(attribute.getNodeName())
-							    && "0".equals(attribute.getNodeValue())) {
-								foundBug = true;
-								break findBug;
-							}
-						}
-					}
-				}
-			}
-
-			Logger.getLogger(ImageUtilities.class.getName()).finer("foundBug: " + foundBug);
-
-			if (!foundBug) {
-				// Load non-buggy GIF the normal way
-				return Toolkit.getDefaultToolkit().createImage(file.getName());
-			}
-
-			// Prepare stream to encode fixed GIF to
-			ByteArrayOutputStream baoStream = new ByteArrayOutputStream();
-			try (ImageOutputStream outputStream = ImageIO.createImageOutputStream(baoStream)) {
-				// Prepare an encoder
-				ImageWriter writer = ImageIO.getImageWriter(reader);
-				writer.setOutput(outputStream);
-				writer.prepareWriteSequence(null);
-
-				for (int i = 0; i < numImages; i++) {
-					// Get input image
-					BufferedImage frameIn = reader.read(i);
-
-					// Get metadata tree for this input frame
-					IIOMetadata metadata = reader.getImageMetadata(i);
-					Node        tree     = metadata.getAsTree(metadata.getNativeMetadataFormatName());
-
-					// Find delay, which is at: <root><GraphicControlExtension delayTime=##></root>
-					NodeList children = tree.getChildNodes();
-					for (int j = 0; j < children.getLength(); j++) {
-						Node node = children.item(j);
-						if ("GraphicControlExtension".equals(node.getNodeName())) {
-							NamedNodeMap attributes = node.getAttributes();
-							for (int k = 0; k < attributes.getLength(); k++) {
-								Node attribute = attributes.item(k);
-								if ("delayTime".equals(attribute.getNodeName())
-								    && "0".equals(attribute.getNodeValue())) {
-									// Overwrite with the intended delay value
-									((IIOMetadataNode)node).setAttribute("delayTime", "10");
-									break;
-								}
-							}
-							break;
-						}
-					}
-
-					// Set metadata tree for this output frame
-					metadata = writer.getDefaultImageMetadata(new ImageTypeSpecifier(frameIn), null);
-					metadata.setFromTree(metadata.getNativeMetadataFormatName(), tree);
-
-					// Create and encode output image
-					IIOImage frameOut = new IIOImage(frameIn, null, metadata);
-					writer.writeToSequence(frameOut, writer.getDefaultWriteParam());
-				}
-
-				writer.endWriteSequence();
-			}
-
-			// Create image using encoded data
-			return Toolkit.getDefaultToolkit().createImage(baoStream.toByteArray());
-		}
-	}
-
-	public static AnimationFrame[] loadGIFAsFrames(File file) throws IOException {
-		try (ImageInputStream inputStream = ImageIO.createImageInputStream(file)) {
-			// Prepare a decoder
-			ImageReader reader = ImageIO.getImageReadersByFormatName("gif").next();
-			reader.setInput(inputStream);
-
-			int              numImages = reader.getNumImages(true);
-			AnimationFrame[] frames    = new AnimationFrame[numImages];
-
-			BufferedImage image = null;
-
-			for (int i = 0; i < numImages; i++) {
-				IIOMetadata     metadata = reader.getImageMetadata(i);
-				IIOMetadataNode tree     = (IIOMetadataNode)metadata.getAsTree(metadata.getNativeMetadataFormatName());
-
-				// Default attributes in case they're not found.
-				int     imageLeftPosition    = 0;
-				int     imageTopPosition     = 0;
-				String  disposalMethod       = null;
-				boolean transparentColorFlag = false;
-				int     delayTime            = 10;
-
-				// Find all attributes of interest.
-				NodeList imageDescriptor = tree.getElementsByTagName("ImageDescriptor");
-				if (imageDescriptor.getLength() > 0) {
-					NamedNodeMap attributes = imageDescriptor.item(0).getAttributes();
-					for (int k = 0; k < attributes.getLength(); k++) {
-						Node attribute = attributes.item(k);
-						if ("imageLeftPosition".equals(attribute.getNodeName()))
-							imageLeftPosition = Integer.parseInt(attribute.getNodeValue());
-						else if ("imageTopPosition".equals(attribute.getNodeName()))
-							imageTopPosition = Integer.parseInt(attribute.getNodeValue());
-					}
-				}
-
-				NodeList graphicControlExtension = tree.getElementsByTagName("GraphicControlExtension");
-				if (graphicControlExtension.getLength() > 0) {
-					NamedNodeMap attributes = graphicControlExtension.item(0).getAttributes();
-					for (int k = 0; k < attributes.getLength(); k++) {
-						Node attribute = attributes.item(k);
-						if ("disposalMethod".equals(attribute.getNodeName()))
-							disposalMethod = attribute.getNodeValue();
-						else if ("transparentColorFlag".equals(attribute.getNodeName()))
-							transparentColorFlag = Boolean.parseBoolean(attribute.getNodeValue());
-						else if ("delayTime".equals(attribute.getNodeName()))
-							delayTime = Integer.parseInt(attribute.getNodeValue());
-					}
-				}
-
-				NodeList globalColorTable      = tree.getElementsByTagName("GlobalColorTable");
-				NodeList globalScreeDescriptor = tree.getElementsByTagName("LogicalScreenDescriptor");
-				if (globalColorTable.getLength() > 0 || globalScreeDescriptor.getLength() > 0)
-					Thread.yield(); // [breakpoint] TODO implement once images with these tags are found
-
-				// Fix invalid delayTime
-				if (delayTime == 0)
-					delayTime = 10;
-
-				BufferedImage animationFrame = reader.read(i, null);
-
-				if (image == null) {
-					int type = transparentColorFlag ? BufferedImage.TYPE_INT_ARGB : BufferedImage.TYPE_INT_RGB;
-					image = new BufferedImage(animationFrame.getWidth(), animationFrame.getHeight(), type);
-				}
-
-				// Compose the source frame on top of the accumulated frame
-				Graphics g = image.getGraphics();
-				try {
-					g.drawImage(animationFrame, imageLeftPosition, imageTopPosition, null);
-				} finally {
-					g.dispose();
-				}
-
-				// Copy the accumulated image to make an animation frame.
-				animationFrame = new BufferedImage(image.getWidth(), image.getHeight(), image.getType());
-
-				g = animationFrame.getGraphics();
-				try {
-					g.drawImage(image, 0, 0, null);
-				} finally {
-					g.dispose();
-				}
-
-				frames[i] = new AnimationFrame(animationFrame, delayTime * 10);
-
-				switch (disposalMethod) {
-					case "none":
-					case "doNotDispose":
-						// Leave image as is.
-						break;
-					case "restoreToBackgroundColor":
-						// TODO implement once GlobalColorTable has been decoded
-						Arrays.fill(((DataBufferInt)image.getRaster().getDataBuffer()).getData(), 0x00000000);
-						break;
-					case "restoreToPrevious":
-						// TODO
-					default:
-						throw new UnsupportedOperationException("disposalMethod: " + disposalMethod);
-				}
-			}
-
-			return frames;
-		}
-	}
-
-	private static StringBuilder dumpTree(StringBuilder sb, Node parent, int depth) {
-		String       nodeName   = parent.getNodeName();
-		String       nodeValue  = parent.getNodeValue();
-		NamedNodeMap attributes = parent.getAttributes();
-		NodeList     children   = parent.getChildNodes();
-
-		for (int i = 0; i < depth; i++)
-			sb.append("  ");
-		sb.append('<').append(nodeName);
-		if (nodeValue != null)
-			sb.append('=').append(nodeValue);
-
-		for (int i = 0; i < attributes.getLength(); i++) {
-			Node   attribute      = attributes.item(i);
-			String attributeName  = attribute.getNodeName();
-			String attributeValue = attribute.getNodeValue();
-			sb.append(' ').append(attributeName).append("=\"").append(attributeValue).append('"');
-		}
-
-		if (children.getLength() == 0)
-			sb.append('/');
-
-		sb.append(">\n");
-
-		for (int i = 0; i < children.getLength(); i++) {
-			Node child = children.item(i);
-			dumpTree(sb, child, depth + 1);
-		}
-
-		if (children.getLength() != 0) {
-			for (int i = 0; i < depth; i++)
-				sb.append("  ");
-			sb.append("</").append(nodeName).append(">\n");
-		}
-
-		return sb;
-	}
-
 	public static String analyzeImage(Image img) {
-		if (img instanceof BufferedImage) {
-			BufferedImage image                   = (BufferedImage)img;
-			int           srcDataType             = image.getRaster().getDataBuffer().getDataType();
-			int           srcColorType            = getColorSpaceType(image.getColorModel().getColorSpace());
-			int           numComponents           = image.getColorModel().getColorSpace().getNumComponents();
-			boolean       hasAlpha                = image.getColorModel().hasAlpha();
-			boolean       srcIsAlphaPremultiplied = image.getColorModel().isAlphaPremultiplied();
-			boolean       srcIsSRGB               = srcColorType != ColorSpace.CS_LINEAR_RGB;
-			return imageTypeName(image.getType())
-			       + " / " + dataTypeName(srcDataType)
-			       + " / " + numComponents + "ch "
-			       + " / " + (hasAlpha ? "alpha" : "opaque")
-			       + (srcIsAlphaPremultiplied ? " premultiplied" : "")
-			       + " / " + (srcIsSRGB ? "sRGB" : "linearRGB");
-		} else {
+		if (!(img instanceof BufferedImage))
 			return img.getClass().getSimpleName();
-		}
+
+		BufferedImage image                   = (BufferedImage)img;
+		int           srcDataType             = image.getRaster().getDataBuffer().getDataType();
+		int           srcColorType            = getColorSpaceType(image.getColorModel().getColorSpace());
+		int           numComponents           = image.getColorModel().getColorSpace().getNumComponents();
+		boolean       hasAlpha                = image.getColorModel().hasAlpha();
+		boolean       srcIsAlphaPremultiplied = image.getColorModel().isAlphaPremultiplied();
+		boolean       srcIsSRGB               = srcColorType != ColorSpace.CS_LINEAR_RGB;
+
+		return imageTypeName(image.getType())
+		       + " / " + dataTypeName(srcDataType)
+		       + " / " + numComponents + "ch"
+		       + " / " + (hasAlpha ? "alpha" : "opaque")
+		       + (srcIsAlphaPremultiplied ? " premultiplied" : "")
+		       + " / " + (srcIsSRGB ? "sRGB" : "linearRGB");
 	}
 
 	public static String dataTypeName(int type) {
@@ -469,133 +155,49 @@ public enum ImageUtilities {
 	}
 
 	public static int getColorSpaceType(ColorSpace cs) {
-		// In order of likelyhood, to prevent unnecessary instantiations inside ColorSpace.
-		if (cs == ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB)) {
+		// In order of likelihood, to prevent unnecessary instantiations inside ColorSpace.
+		if (ColorSpace.getInstance(ColorSpace.CS_LINEAR_RGB).equals(cs)) {
 			return ColorSpace.CS_LINEAR_RGB;
-		} else if (cs == ColorSpace.getInstance(ColorSpace.CS_GRAY)) {
+		} else if (ColorSpace.getInstance(ColorSpace.CS_GRAY).equals(cs)) {
 			return ColorSpace.CS_GRAY;
-		} else if (cs == ColorSpace.getInstance(ColorSpace.CS_sRGB)) {
+		} else if (ColorSpace.getInstance(ColorSpace.CS_sRGB).equals(cs)) {
 			return ColorSpace.CS_sRGB;
-		} else if (cs == ColorSpace.getInstance(ColorSpace.CS_CIEXYZ)) {
+		} else if (ColorSpace.getInstance(ColorSpace.CS_CIEXYZ).equals(cs)) {
 			return ColorSpace.CS_CIEXYZ;
-		} else if (cs == ColorSpace.getInstance(ColorSpace.CS_PYCC)) {
+		} else if (ColorSpace.getInstance(ColorSpace.CS_PYCC).equals(cs)) {
 			return ColorSpace.CS_PYCC;
 		} else {
 			return -1;
 		}
 	}
 
+	public static BufferedImage createByteImage(int width, int height, int pixelStride,
+	                                            int colorType,
+	                                            boolean hasAlpha, boolean isAlphaPre) {
+		ColorModel outModel = new ComponentColorModel(
+				ColorSpace.getInstance(colorType),
+				hasAlpha, isAlphaPre,
+				hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE,
+				DataBuffer.TYPE_BYTE);
+
+		int[] channelOffsets = new int[pixelStride];
+		for (int i = 0; i < pixelStride; i++) {
+			channelOffsets[i] = pixelStride - i - 1;
+		}
+		WritableRaster outRaster = Raster.createInterleavedRaster(
+				DataBuffer.TYPE_BYTE, width, height, width * pixelStride, pixelStride,
+				channelOffsets, null);
+
+		return new BufferedImage(outModel, outRaster, isAlphaPre, null);
+	}
+
 	public static int getBufferedImageType(int numComponents, boolean withAlpha) {
-		switch (numComponents) {
-			case 1:
-				if (!withAlpha) {
-					return BufferedImage.TYPE_BYTE_GRAY;
-				}
-				break;
-			case 3:
-				return withAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR;
-		}
-		throw new UnsupportedOperationException(
-				"numComponents: " + numComponents + ", withAlpha: " + withAlpha);
-	}
+		if (numComponents == 3)
+			return withAlpha ? BufferedImage.TYPE_4BYTE_ABGR : BufferedImage.TYPE_3BYTE_BGR;
+		else if (numComponents == 1 && !withAlpha)
+			return BufferedImage.TYPE_BYTE_GRAY;
 
-	public static SizeInt getScalingSize(SizeInt imageSize, SizeInt targetSize) {
-		return getScalingSize(imageSize, targetSize, ScalingTarget.INSIDE, ScalingCondition.ALWAYS);
-	}
-
-	public static SizeInt getScalingSize(SizeInt imageSize, SizeInt targetSize, ScalingTarget scalingTarget) {
-		return getScalingSize(imageSize, targetSize, scalingTarget, ScalingCondition.ALWAYS);
-	}
-
-	public static SizeInt getScalingSize(SizeInt imageSize, SizeInt targetSize, ScalingTarget scalingTarget,
-	                                     ScalingCondition scalingCondition) {
-		int wCross = imageSize.getWidth() * targetSize.getHeight();
-		int hCross = imageSize.getHeight() * targetSize.getWidth();
-
-		int width;
-		int height;
-		switch (scalingTarget) {
-			case STRETCH:
-				width = imageSize.getWidth();
-				height = imageSize.getHeight();
-				break;
-			case INSIDE:
-				if (wCross > hCross) {
-					width = targetSize.getWidth();
-					height = intDivRound(hCross, imageSize.getWidth());
-				} else {
-					width = intDivRound(wCross, imageSize.getHeight());
-					height = targetSize.getHeight();
-				}
-				break;
-			case OUTSIDE:
-				if (wCross < hCross) {
-					width = targetSize.getWidth();
-					height = intDivRound(hCross, imageSize.getWidth());
-				} else {
-					width = intDivRound(wCross, imageSize.getHeight());
-					height = targetSize.getHeight();
-				}
-				break;
-			case WIDTH_TOUCH:
-				width = targetSize.getWidth();
-				height = intDivRound(hCross, imageSize.getWidth());
-				break;
-			case HEIGHT_TOUCH:
-				width = intDivRound(wCross, imageSize.getHeight());
-				height = targetSize.getHeight();
-				break;
-			case SAME_DIAGONAL:
-				double vDia = Math.hypot(targetSize.getWidth(), targetSize.getHeight());
-				double iDia = Math.hypot(imageSize.getWidth(), imageSize.getHeight());
-				width = (int)Math.rint(imageSize.getWidth() * vDia / iDia);
-				height = (int)Math.rint(imageSize.getHeight() * vDia / iDia);
-				break;
-			case SAME_CIRCUMFERENCE:
-				int vSum = targetSize.getWidth() + targetSize.getHeight();
-				int iSum = imageSize.getWidth() + imageSize.getHeight();
-				width = intDivRound(imageSize.getWidth() * vSum, iSum);
-				height = intDivRound(imageSize.getHeight() * vSum, iSum);
-				break;
-			case SAME_AREA:
-				int vArea = targetSize.getWidth() * targetSize.getHeight();
-				int iArea = imageSize.getWidth() * imageSize.getHeight();
-				width = intDivRound(imageSize.getWidth() * vArea, iArea);
-				height = intDivRound(imageSize.getHeight() * vArea, iArea);
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown scalingHint: " + scalingTarget);
-		}
-
-		switch (scalingCondition) {
-			case ALWAYS:
-				break;
-			case NEVER:
-				width = imageSize.getWidth();
-				height = imageSize.getHeight();
-				break;
-			case ONLY_IF_LARGER:
-				if (width >= imageSize.getWidth() && height >= imageSize.getHeight()) {
-					width = imageSize.getWidth();
-					height = imageSize.getHeight();
-				}
-				break;
-			case ONLY_IF_SMALLER:
-			case ONLY_INTEGER_ZOOM:
-				if (width <= imageSize.getWidth() && height <= imageSize.getHeight()) {
-					width = imageSize.getWidth();
-					height = imageSize.getHeight();
-				}
-				break;
-			default:
-				throw new IllegalArgumentException("Unknown scalingCondition: " + scalingCondition);
-		}
-
-		return new SizeInt(width, height);
-	}
-
-	public static int intDivRound(int numerator, int denominator) {
-		return denominator == 0 ? 0 : (numerator + denominator / 2) / denominator;
+		throw new UnsupportedOperationException("numComponents: " + numComponents + ", withAlpha: " + withAlpha);
 	}
 
 	public static BufferedImage toBufferedImage(Image image) {
@@ -627,25 +229,5 @@ public enum ImageUtilities {
 		System.arraycopy(data, 0, buffer, 0, buffer.length);
 
 		return out;
-	}
-
-	public static BufferedImage createByteImage(int width, int height, int pixelStride,
-	                                            int colorType,
-	                                            boolean hasAlpha, boolean isAlphaPre) {
-		ColorModel outModel = new ComponentColorModel(
-				ColorSpace.getInstance(colorType),
-				hasAlpha, isAlphaPre,
-				hasAlpha ? Transparency.TRANSLUCENT : Transparency.OPAQUE,
-				DataBuffer.TYPE_BYTE);
-
-		int[] bandOffsets = new int[pixelStride];
-		for (int i = 0; i < pixelStride; i++) {
-			bandOffsets[i] = pixelStride - i - 1;
-		}
-		WritableRaster outRaster = Raster.createInterleavedRaster(
-				DataBuffer.TYPE_BYTE, width, height, width * pixelStride, pixelStride,
-				bandOffsets, null);
-
-		return new BufferedImage(outModel, outRaster, isAlphaPre, null);
 	}
 }

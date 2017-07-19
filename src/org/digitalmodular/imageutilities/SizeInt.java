@@ -3,10 +3,10 @@
  * with a library class (e.g. Size2D from javafx), or keep
  * using it as-is.
  */
-package org.digitalmodular.imageutilities.util;
+package org.digitalmodular.imageutilities;
 
 import java.awt.Dimension;
-import java.awt.image.BufferedImage;
+import java.awt.image.RenderedImage;
 
 public class SizeInt {
 	private final int width;
@@ -17,7 +17,7 @@ public class SizeInt {
 		this.height = height;
 	}
 
-	public SizeInt(BufferedImage img) {
+	public SizeInt(RenderedImage img) {
 		width = img.getWidth();
 		height = img.getHeight();
 	}
@@ -32,8 +32,11 @@ public class SizeInt {
 
 	@Override
 	public boolean equals(Object o) {
-		if (this == o) return true;
-		if (!(o instanceof SizeInt)) return false;
+		if (this == o)
+			return true;
+
+		if (!(o instanceof SizeInt))
+			return false;
 
 		SizeInt sizeInt = (SizeInt)o;
 

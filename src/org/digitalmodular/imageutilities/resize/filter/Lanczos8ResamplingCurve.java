@@ -27,36 +27,36 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * Lanczos filter with 8 lobes. Radius = 8. Under/overshoot extreme.
+ * Lanczos filter with 8 lobes. Radius = 8. Because of the extreme overshoot, this is only intended for scientific
+ * purposes where preservation of spatial frequencies is more important than visual appearance.
  *
  * @author Mark Jeronimus
  */
 // Created 2015-08-14
-public class Lanczos8ResamplingCurve extends Lanczos3ResamplingCurve {
+public class Lanczos8ResamplingCurve implements ResamplingCurve {
 	public static final Lanczos8ResamplingCurve INSTANCE = new Lanczos8ResamplingCurve();
 
 	@Override
-	public String getName() {
-		return "Lanczos8";
-	}
+	public String getName() { return "Lanczos8"; }
 
 	@Override
-	public double getRadius() {
-		return 8;
-	}
+	public double getRadius() { return 8; }
 
 	@Override
 	public double apply(double value) {
-		if (value < 0) {
+		if (value < 0)
 			value = -value;
-		}
-		if (value >= 8) {
+
+		if (value >= 8)
 			return 0;
-		} else if (value == 0) {
+		else if (value == 0)
 			return 1;
-		}
 
 		value *= Math.PI;
 		return sinc(value) * sinc(value / 8);
+	}
+
+	protected static double sinc(double value) {
+		return value == 0 ? 1 : Math.sin(value) / value;
 	}
 }

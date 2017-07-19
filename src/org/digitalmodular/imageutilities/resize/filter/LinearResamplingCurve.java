@@ -27,7 +27,7 @@
 package org.digitalmodular.imageutilities.resize.filter;
 
 /**
- * A linear curve (also known as triangle or bilinear filter) Radius = 1. No under/overshoot.
+ * A linear curve (also known as triangle or bilinear filter) Radius = 1. No overshoot.
  *
  * @author Mark Jeronimus
  */
@@ -36,24 +36,19 @@ public class LinearResamplingCurve implements ResamplingCurve {
 	public static final LinearResamplingCurve INSTANCE = new LinearResamplingCurve();
 
 	@Override
-	public String getName() {
-		return "Triangle";
-	}
+	public String getName() { return "Linear"; }
 
 	@Override
-	public double getRadius() {
-		return 1;
-	}
+	public double getRadius() { return 1; }
 
 	@Override
-	public final double apply(double x) {
-		if (x < 0) {
-			x = -x;
-		}
-		if (x >= 1) {
+	public final double apply(double value) {
+		if (value < 0)
+			value = -value;
+
+		if (value >= 1)
 			return 0;
-		}
 
-		return 1 - x;
+		return 1 - value;
 	}
 }

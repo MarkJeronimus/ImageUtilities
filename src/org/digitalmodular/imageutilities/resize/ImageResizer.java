@@ -28,28 +28,23 @@ package org.digitalmodular.imageutilities.resize;
 
 import java.awt.image.BufferedImage;
 
-import org.digitalmodular.imageutilities.util.PointDouble;
-import org.digitalmodular.imageutilities.util.SizeDouble;
-import org.digitalmodular.imageutilities.util.SizeInt;
-import static org.digitalmodular.imageutilities.ImageUtilities.AnimationFrame;
+import org.digitalmodular.imageutilities.AnimationFrame;
+import org.digitalmodular.imageutilities.PointDouble;
+import org.digitalmodular.imageutilities.SizeDouble;
+import org.digitalmodular.imageutilities.SizeInt;
 
 /**
  * @author Mark Jeronimus
  */
 // Created 2016-05-06
+@SuppressWarnings("OverloadedVarargsMethod")
 public interface ImageResizer {
 	enum EdgeMode {
-		/**
-		 * Replicate edge pixels (-1 = 0, -2 = 0, etc.)
-		 */
+		/** Replicate edge pixels (-1 = 0, -2 = 0, etc.) */
 		CLAMP,
-//		/**
-//		 * Replicate edge pixels (-1 = w, -2 = w-1, etc.)
-//		 */
+//		/** Replicate edge pixels (-1 = w, -2 = w-1, etc.) */
 //		WRAP,
-//		/**
-//		 * Mirror back at the edge (-1 = 1, -2 = 2, etc.)
-//		 */
+//		/** Mirror back at the edge (-1 = 1, -2 = 2, etc.) */
 //		BOUNCE,
 //		/**
 //		 * Simulate transparent pixels beyond the edge (only applicable if the image to resize is transparent,
@@ -63,9 +58,9 @@ public interface ImageResizer {
 
 	void setOutputSize(SizeInt outputSize);
 
-	SizeDouble getOutputScale();
+	SizeDouble getOutputScaleFactor();
 
-	void setOutputScale(SizeDouble outputScale);
+	void setOutputScaleFactor(SizeDouble outputScaleFactor);
 
 	PointDouble getOutputOffset();
 

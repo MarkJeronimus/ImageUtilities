@@ -16,12 +16,12 @@ While it has tons of features, simply resizing an image is easy with the default
   * Output size by both pixels and scaling factor (Image may be cropped or gets a border)
   * Output offset, to move the image with subpixel accuracy (default: depends on final dimension, but is either <tt>(0, 0)</tt> or <tt>(0.5, 0.5)</tt>
   * Flag to skip sRGB correction (default: <tt>false</tt>)
-  * Flag to skip alpha pre-multiplying and un-pre-multiplying (default: <tt>false</tt>, ignored for opaque images)
+  * Flag to skip alpha premultiplying and un-premultiplying (default: <tt>false</tt>, ignored for opaque images)
   * Mode to handle beyond-edge pixels (default: <tt>CLAMP</tt>, all others are on TODO list)
   * Number of threads (default: <tt>availableProcessors</tt>)
   * Resampling-curve (default: <tt>Lanczos3ResamplingCurve</tt>, others: <tt>BoxResamplingCurve</tt>, <tt>CubicResamplingCurve</tt> and many more, and an easy API to write your own)
 * Other features
-  * Internal 15 bit per channel format to prevent intermediate clamping and quantization
+  * Internal 15 bit per channel encoding to prevent intermediate clamping and quantization
   * Custom containers for Point, Size, etc. which are immutable
   * Progress listeners (custom API for more flexibility)
   * Method to test if input image is in a compatible format (when this returns <tt>false</tt>, resizing <i>that</i> image incurs a conversion penalty) and a utility to convert such images to a compatible format so you can resize them many times, e.g. when resizing a window.
@@ -31,18 +31,19 @@ While it has tons of features, simply resizing an image is easy with the default
   * Utilities to calculate output size while keeping aspect ratio, when given constraints like maximum target size, scaling target (Default: <tt>INSIDE</tt>) and condition (default: <tt>ALWAYS</tt>)
   * Utilities to create an <tt>AnimationFrame[]</tt> (read: animation) from GIF files, and a (JavaFX-based) SWING widget to show the animation
 
-Currently, two concrete implementations of the resampler are available, the slightly slower but more mature <tt>ImageResamplerShort2</tt> which uses a 4-pass strategy:
+The only current implementation of the resampler, <tt>ImageResamplerShort2</tt>, uses a 4-pass strategy:
 
 1. Pre-convert
 2. Resample one axis
 3. Resample the other axis
 4. Post-convert
 
-Each pass is completed before starting the next pass. In each pass, the image is split into horizontal strips which are processed concurrently. On average (tested on an idle i7-4710MQ) about 5-10% of wall clock time is wasted because some threads are faster than others and it doesn't use "work stealing".
-
----
-
-The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> uses a smart interleaving strategy. The image is chopped into many rectangular pieces, and workers for each of the aforementioned steps are instantiated for each piece, with a dependency on the results of the previous worker and some neighboring workers. A worker becomes eligible for execution if all dependent workers are completed. All workers are submitted for concurrent execution. Workers which are blocked start whenever they become eligible <i>and</i> a thread is available.
+First it calculates which axis to resize first, based on approximate effort calculations.
+Then it splits the image into as many strips as there are CPU threads.
+It builds a set of 4&times;N worker jobs.
+It determines which jobs need to be finished in one pass before a specific job in the next pass may begin
+(because some jobs, namely the Y resample jobs, depend on pixels from other thread's strips).
+Note: Strip-dependencies are currently enforced for all strips for debugging purposes.
 
 # Changes
 (compared to [java-image-scaling](https://github.com/mortennobel/java-image-scaling))
@@ -52,7 +53,7 @@ The slightly faster experimental implementation, <tt>ImageResamplerShort</tt> us
 - Changed method/field visibility to prevent synthetic accessor methods
 - Subsampling center was way off
 - Subsampling center offset now configurable (user and auto<sup>[[2]]( "Sets offset to 0.5 if it would make the image sharper (more precisely, when the output size is an odd number of pixels)")</sup>)
-- Subsampling border effect was wrong<sup>[[1]]( "Ignoring out-of-bounds pixels increases the weight of existing pixels. This causes the pixels near the edge to 'move' inwards slightly. This is akin to non-linear image warping")</sup> (was: ignore, now: replicate_edge)
+- Subsampling border effect was wrong<sup>[[1]]("Ignoring out-of-bounds pixels increases the weight of existing pixels. This causes the pixels near the edge to 'move' inwards slightly. This is akin to non-linear image warping")</sup> (was: ignore, now: replicate_edge)
 - Subsampling left and right always unnecessarily went out of radius (ceil/floor swapped)
 - Subsampling numContributors slightly wrong. fNormFac calculation was totally facked. Both are not necessary anymore, because of the next point:
 - Subsampling 'number of samples' now fixed for a given scaling factor. Only in rare cases can one of the weights be 0.
