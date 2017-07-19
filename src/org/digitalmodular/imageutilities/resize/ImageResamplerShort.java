@@ -80,17 +80,16 @@ public class ImageResamplerShort extends AbstractImageResampler {
 	protected static final byte[]  SHORT2_TO_BYTE_SRGB = new byte[65536];
 
 	static {
-		// FIXME black is not -16384 but -16383
 		for (int b = 0; b < 256; b++) {
 			double f = (b & 0xFF) / 255.0;
-			BYTE_SRGB_TO_SHORT[b] = (short)(fromSRGB(f) * 32640 - 16384 + 0.5);
+			BYTE_SRGB_TO_SHORT[b] = (short)Math.floor(fromSRGB(f) * 32640 - 16384 + 0.5);
 			// With offset already implemented
 			BYTE_SRGB_TO_SHORT2[b] = (short)(BYTE_SRGB_TO_SHORT[b] + 16384);
 		}
 
 		for (int s = -32768; s < 32768; s++) {
 			double f = s < -16384 ? 0 : s >= 16256 ? 1 : (s + 16384) / 32640.0;
-			SHORT_TO_BYTE_SRGB[s & 0xFFFF] = (byte)(toSRGB(f) * 255 + 0.5);
+			SHORT_TO_BYTE_SRGB[s & 0xFFFF] = (byte)Math.floor(toSRGB(f) * 255 + 0.5);
 			// With offset already implemented
 			SHORT2_TO_BYTE_SRGB[(s + 16384) & 0xFFFF] = SHORT_TO_BYTE_SRGB[s & 0xFFFF];
 		}
