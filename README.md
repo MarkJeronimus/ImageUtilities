@@ -47,7 +47,7 @@ It determines which jobs need to be finished in one pass before a specific job i
 # Changes
 (compared to [java-image-scaling](https://github.com/mortennobel/java-image-scaling))
 
-- UnsharpFilter removed (i.e. DIY if you need it, or just use a sharper Cubic filter)
+- UnsharpFilter removed (i.e. DIY if you need it, or just use a sharper Cubic resampling curve)
 - DimensionConstrain removed (now static methods in ImageUtilities)
 - Changed method/field visibility to prevent synthetic accessor methods
 - Subsampling center was way off
