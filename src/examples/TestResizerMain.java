@@ -9,7 +9,6 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.awt.Frame.MAXIMIZED_BOTH;
-import static java.util.logging.Level.FINER;
 import static java.util.logging.Level.FINEST;
 import javax.imageio.ImageIO;
 import javax.swing.JFrame;
@@ -32,7 +31,7 @@ public class TestResizerMain {
 	public static void main(String... args) throws IOException, InterruptedException {
 		setLoggerLevel(FINEST);
 
-		String filename = "extremeOvershoot.png";
+		String filename = "cpuStripesTest.png";
 
 		BufferedImage image = load("testImages/" + filename);
 
@@ -65,13 +64,13 @@ public class TestResizerMain {
 		SizeInt newSize = ResizerUtilities.getScalingSize(new SizeInt(image), new SizeInt(1024, 1024));
 
 		ImageResamplerShort resampler = new ImageResamplerShort();
-		resampler.setNumThreads(1);
+		resampler.setNumThreads(8);
 //		resampler.setIgnoreSRGB(true);
 //		resampler.setDontPreAlpha(true);
 //		resampler.setEdgeMode(EdgeMode.CLAMP);
 		resampler.setFilter(Lanczos8ResamplingCurve.INSTANCE);
 //		resampler.setOutputSize(newSize);
-		resampler.setOutputScaleFactor(new SizeDouble(16, 16));
+		resampler.setOutputScaleFactor(new SizeDouble(1, 63.5));
 		resampler.setOffset(new PointDouble(0, 0));
 
 		Logger.getGlobal().info("Resizing");

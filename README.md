@@ -43,7 +43,6 @@ Then it splits the image into as many strips as there are CPU threads.
 It builds a set of 4&times;N worker jobs.
 It determines which jobs need to be finished in one pass before a specific job in the next pass may begin
 (because some jobs, namely the Y resample jobs, depend on pixels from other thread's strips).
-Note: Strip-dependencies are currently enforced for all strips for debugging purposes.
 
 # Changes
 (compared to [java-image-scaling](https://github.com/mortennobel/java-image-scaling))

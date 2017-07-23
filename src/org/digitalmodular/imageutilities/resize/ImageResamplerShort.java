@@ -357,8 +357,18 @@ public class ImageResamplerShort extends AbstractImageResampler {
 					Callable<Void> worker = currentLayer.get(j);
 
 					// Only VerticalResampleWorker needs data of bordering strips
-					int width = numStrips;// FIXME worker instanceof VerticalResampleWorker? 1 : 0;
-					// FIXME: just 0 or 1 is not adequate. It fails when strips are narrower than the filter radius.
+					int width = 0;
+
+					if (worker instanceof VerticalResampleWorker) {
+						VerticalResampleWorker verticalWorker = ((VerticalResampleWorker)worker);
+
+						double scaleFactor = heightScaleFactor < 1 ? 1 / heightScaleFactor : heightScaleFactor;
+						double stripHeight = srcHeight * heightScaleFactor / numStrips;
+						double overlap     = scaleFactor / stripHeight * filter.getRadius();
+						width = (int)Math.ceil(overlap);
+					}
+					// FIXME: just 0 or 1 is not adequate. It fails when strips are narrower than the resampling curve
+					// radius.
 
 					// Create a list of dependencies for this worker
 					Collection<Callable<Void>> dependencies = new ArrayList<>(3);
